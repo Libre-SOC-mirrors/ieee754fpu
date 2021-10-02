@@ -357,6 +357,7 @@ class PartitionedSignal(UserValue):
             ``1`` if all bits are set, ``0`` otherwise.
         """
         # something wrong with PartitionedAll, but self == Const(-1)"
+        # XXX https://bugs.libre-soc.org/show_bug.cgi?id=176#c17
         #width = len(self.sig)
         #pa = PartitionedAll(width, self.partpoints)
         #setattr(self.m.submodules, self.get_modname("all"), pa)
