@@ -203,6 +203,7 @@ class TestAddMod(Elaboratable):
         self.sub_carry_out = Signal(len(partpoints)+1)
         self.neg_output = Signal(width)
         self.xor_output = Signal(len(partpoints)+1)
+        self.bool_output = Signal(len(partpoints)+1)
 
     def elaborate(self, platform):
         m = Module()
@@ -231,6 +232,7 @@ class TestAddMod(Elaboratable):
         comb += self.neg_output.eq((-self.a).sig)
         # horizontal operators
         comb += self.xor_output.eq(self.a.xor())
+        comb += self.bool_output.eq(self.a.bool())
         # left shift
         comb += self.ls_output.eq(self.a << self.b)
         # right shift
@@ -577,6 +579,15 @@ class TestPartitionedSignal(unittest.TestCase):
                     test >>= 1
                 return result
 
+            def test_bool_fn(a, mask):
+                test = (a & mask)
+                result = 0
+                while test != 0:
+                    bit = (test & 1)
+                    result |= bit
+                    test >>= 1
+                return result
+
             def test_horizop(msg_prefix, test_fn, mod_attr, *maskbit_list):
                 randomvals = []
                 for i in range(10):
@@ -612,6 +623,7 @@ class TestPartitionedSignal(unittest.TestCase):
                     self.assertEqual(y, outval, msg % str(maskbit_list))
 
             for (test_fn, mod_attr) in ((test_xor_fn, "xor"),
+                                        (test_bool_fn, "bool"),
                                         #(test_ne_fn, "ne"),
                                         ):
                 yield part_mask.eq(0)
