@@ -64,6 +64,10 @@ class EQCombiner(Combiner):
         Combiner.__init__(self, operator.or_, width)
 
 
+class AllCombiner(Combiner):
+    def __init__(self, width):
+        Combiner.__init__(self, operator.and_, width)
+
 class XORCombiner(Combiner):
     def __init__(self, width):
         Combiner.__init__(self, operator.xor, width)
