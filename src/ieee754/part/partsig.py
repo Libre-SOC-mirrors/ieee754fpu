@@ -356,11 +356,13 @@ class PartitionedSignal(UserValue):
         Value, out
             ``1`` if all bits are set, ``0`` otherwise.
         """
-        width = len(self.sig)
-        pa = PartitionedAll(width, self.partpoints)
-        setattr(self.m.submodules, self.get_modname("all"), pa)
-        self.m.d.comb += pa.a.eq(self.sig)
-        return pa.output
+        # something wrong with PartitionedAll, but self == Const(-1)"
+        #width = len(self.sig)
+        #pa = PartitionedAll(width, self.partpoints)
+        #setattr(self.m.submodules, self.get_modname("all"), pa)
+        #self.m.d.comb += pa.a.eq(self.sig)
+        #return pa.output
+        return self == Const(-1) # leverage the __eq__ operator here
 
     def xor(self):
         """Compute pairwise exclusive-or of every bit.
