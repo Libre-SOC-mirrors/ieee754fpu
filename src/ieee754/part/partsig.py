@@ -162,6 +162,10 @@ class PartitionedSignal(UserValue):
             scalar = False
             op2 = getsig(op2)
             pa = PartitionedDynamicShift(len(op1), self.partpoints)
+        # else:
+        #   TODO: case where the *shifter* is a PartitionedSignal but
+        #   the thing *being* Shifted is a scalar (Signal, expression)
+        #   https://bugs.libre-soc.org/show_bug.cgi?id=718
         setattr(self.m.submodules, self.get_modname('ls'), pa)
         comb = self.m.d.comb
         if scalar:
@@ -172,7 +176,7 @@ class PartitionedSignal(UserValue):
             comb += pa.a.eq(op1)
             comb += pa.b.eq(op2)
             comb += pa.shift_right.eq(shr_flag)
-        # XXX TODO: carry-in, carry-out
+        # XXX TODO: carry-in, carry-out (for arithmetic shift)
         #comb += pa.carry_in.eq(carry)
         return (pa.output, 0)
 
@@ -182,6 +186,7 @@ class PartitionedSignal(UserValue):
         return result
 
     def __rlshift__(self, other):
+        #   https://bugs.libre-soc.org/show_bug.cgi?id=718
         raise NotImplementedError
         return Operator("<<", [other, self])
 
@@ -191,6 +196,7 @@ class PartitionedSignal(UserValue):
         return result
 
     def __rrshift__(self, other):
+        #   https://bugs.libre-soc.org/show_bug.cgi?id=718
         raise NotImplementedError
         return Operator(">>", [other, self])
 
@@ -225,6 +231,7 @@ class PartitionedSignal(UserValue):
         return result
 
     def __radd__(self, other):
+        #   https://bugs.libre-soc.org/show_bug.cgi?id=718
         result, _ = self.add_op(other, self)
         return result
 
@@ -233,6 +240,7 @@ class PartitionedSignal(UserValue):
         return result
 
     def __rsub__(self, other):
+        #   https://bugs.libre-soc.org/show_bug.cgi?id=718
         result, _ = self.sub_op(other, self)
         return result
 
