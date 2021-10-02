@@ -205,6 +205,7 @@ class TestAddMod(Elaboratable):
         self.xor_output = Signal(len(partpoints)+1)
         self.bool_output = Signal(len(partpoints)+1)
         self.all_output = Signal(len(partpoints)+1)
+        self.any_output = Signal(len(partpoints)+1)
 
     def elaborate(self, platform):
         m = Module()
@@ -235,6 +236,7 @@ class TestAddMod(Elaboratable):
         comb += self.xor_output.eq(self.a.xor())
         comb += self.bool_output.eq(self.a.bool())
         comb += self.all_output.eq(self.a.all())
+        comb += self.any_output.eq(self.a.any())
         # left shift
         comb += self.ls_output.eq(self.a << self.b)
         # right shift
@@ -592,9 +594,20 @@ class TestPartitionedSignal(unittest.TestCase):
 
             def test_horizop(msg_prefix, test_fn, mod_attr, *maskbit_list):
                 randomvals = []
-                for i in range(10):
+                for i in range(100):
                     randomvals.append(randint(0, 65535))
                 for a in [0x0000,
+                          0x1111,
+                          0x0001,
+                          0x0010,
+                          0x0100,
+                          0x1000,
+                          0x000F,
+                          0x00F0,
+                          0x0F00,
+                          0xF000,
+                          0x00FF,
+                          0xFF00,
                              0x1234,
                              0xABCD,
                              0xFFFF,
@@ -628,6 +641,7 @@ class TestPartitionedSignal(unittest.TestCase):
 
             for (test_fn, mod_attr) in ((test_xor_fn, "xor"),
                                         (test_all_fn, "all"),
+                                        (test_bool_fn, "any"), # same as bool
                                         (test_bool_fn, "bool"),
                                         #(test_ne_fn, "ne"),
                                         ):
