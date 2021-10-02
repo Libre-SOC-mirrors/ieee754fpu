@@ -591,17 +591,18 @@ class TestPartitionedSignal(unittest.TestCase):
                 return test == mask
 
             def test_horizop(msg_prefix, test_fn, mod_attr, *maskbit_list):
-                with self.subTest(msg_prefix):
-                    randomvals = []
-                    for i in range(10):
-                        randomvals.append(randint(0, 65535))
-                    for a in [0x0000,
-                                 0x1234,
-                                 0xABCD,
-                                 0xFFFF,
-                                 0x8000,
-                                 0xBEEF, 0xFEED,
-                                    ]+randomvals:
+                randomvals = []
+                for i in range(10):
+                    randomvals.append(randint(0, 65535))
+                for a in [0x0000,
+                             0x1234,
+                             0xABCD,
+                             0xFFFF,
+                             0x8000,
+                             0xBEEF, 0xFEED,
+                                ]+randomvals:
+                    with self.subTest("%s %s %s" % (msg_prefix,
+                                    test_fn.__name__, hex(a))):
                         yield module.a.lower().eq(a)
                         yield Delay(0.1e-6)
                         # convert to mask_list
