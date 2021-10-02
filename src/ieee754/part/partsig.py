@@ -20,6 +20,7 @@ from ieee754.part_mul_add.adder import PartitionedAdder
 from ieee754.part_cmp.eq_gt_ge import PartitionedEqGtGe
 from ieee754.part_bits.xor import PartitionedXOR
 from ieee754.part_bits.bool import PartitionedBool
+from ieee754.part_bits.all import PartitionedAll
 from ieee754.part_shift.part_shift_dynamic import PartitionedDynamicShift
 from ieee754.part_shift.part_shift_scalar import PartitionedScalarShift
 from ieee754.part_mul_add.partpoints import make_partition2, PartitionPoints
@@ -50,7 +51,7 @@ global modnames
 modnames = {}
 # for sub-modules to be created on-demand. Mux is done slightly
 # differently (has its own global)
-for name in ['add', 'eq', 'gt', 'ge', 'ls', 'xor', 'bool']:
+for name in ['add', 'eq', 'gt', 'ge', 'ls', 'xor', 'bool', 'all']:
     modnames[name] = 0
 
 
@@ -355,7 +356,11 @@ class PartitionedSignal(UserValue):
         Value, out
             ``1`` if all bits are set, ``0`` otherwise.
         """
-        return self == Const(-1) # leverage the __eq__ operator here
+        width = len(self.sig)
+        pa = PartitionedAll(width, self.partpoints)
+        setattr(self.m.submodules, self.get_modname("all"), pa)
+        self.m.d.comb += pa.a.eq(self.sig)
+        return pa.output
 
     def xor(self):
         """Compute pairwise exclusive-or of every bit.

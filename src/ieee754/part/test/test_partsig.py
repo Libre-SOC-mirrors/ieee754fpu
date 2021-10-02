@@ -204,6 +204,7 @@ class TestAddMod(Elaboratable):
         self.neg_output = Signal(width)
         self.xor_output = Signal(len(partpoints)+1)
         self.bool_output = Signal(len(partpoints)+1)
+        self.all_output = Signal(len(partpoints)+1)
 
     def elaborate(self, platform):
         m = Module()
@@ -233,6 +234,7 @@ class TestAddMod(Elaboratable):
         # horizontal operators
         comb += self.xor_output.eq(self.a.xor())
         comb += self.bool_output.eq(self.a.bool())
+        comb += self.all_output.eq(self.a.all())
         # left shift
         comb += self.ls_output.eq(self.a << self.b)
         # right shift
@@ -581,48 +583,50 @@ class TestPartitionedSignal(unittest.TestCase):
 
             def test_bool_fn(a, mask):
                 test = (a & mask)
-                result = 0
-                while test != 0:
-                    bit = (test & 1)
-                    result |= bit
-                    test >>= 1
-                return result
+                return test != 0
+
+            def test_all_fn(a, mask):
+                # slightly different: all bits masked must be 1
+                test = (a & mask)
+                return test == mask
 
             def test_horizop(msg_prefix, test_fn, mod_attr, *maskbit_list):
-                randomvals = []
-                for i in range(10):
-                    randomvals.append(randint(0, 65535))
-                for a in [0x0000,
-                             0x1234,
-                             0xABCD,
-                             0xFFFF,
-                             0x8000,
-                             0xBEEF, 0xFEED,
-                                ]+randomvals:
-                    yield module.a.lower().eq(a)
-                    yield Delay(0.1e-6)
-                    # convert to mask_list
-                    mask_list = []
-                    for mb in maskbit_list:
-                        v = 0
-                        for i in range(4):
-                            if mb & (1 << i):
-                                v |= 0xf << (i*4)
-                        mask_list.append(v)
-                    y = 0
-                    # do the partitioned tests
-                    for i, mask in enumerate(mask_list):
-                        if test_fn(a, mask):
-                            # OR y with the lowest set bit in the mask
-                            y |= maskbit_list[i]
-                    # check the result
-                    outval = (yield getattr(module, "%s_output" % mod_attr))
-                    msg = f"{msg_prefix}: {mod_attr} 0x{a:X} " + \
-                        f" => 0x{y:X} != 0x{outval:X}, masklist %s"
-                    print((msg % str(maskbit_list)).format(locals()))
-                    self.assertEqual(y, outval, msg % str(maskbit_list))
+                with self.subTest(msg_prefix):
+                    randomvals = []
+                    for i in range(10):
+                        randomvals.append(randint(0, 65535))
+                    for a in [0x0000,
+                                 0x1234,
+                                 0xABCD,
+                                 0xFFFF,
+                                 0x8000,
+                                 0xBEEF, 0xFEED,
+                                    ]+randomvals:
+                        yield module.a.lower().eq(a)
+                        yield Delay(0.1e-6)
+                        # convert to mask_list
+                        mask_list = []
+                        for mb in maskbit_list:
+                            v = 0
+                            for i in range(4):
+                                if mb & (1 << i):
+                                    v |= 0xf << (i*4)
+                            mask_list.append(v)
+                        y = 0
+                        # do the partitioned tests
+                        for i, mask in enumerate(mask_list):
+                            if test_fn(a, mask):
+                                # OR y with the lowest set bit in the mask
+                                y |= maskbit_list[i]
+                        # check the result
+                        outval = (yield getattr(module, "%s_output" % mod_attr))
+                        msg = f"{msg_prefix}: {mod_attr} 0x{a:X} " + \
+                            f" => 0x{y:X} != 0x{outval:X}, masklist %s"
+                        print((msg % str(maskbit_list)).format(locals()))
+                        self.assertEqual(y, outval, msg % str(maskbit_list))
 
             for (test_fn, mod_attr) in ((test_xor_fn, "xor"),
+                                        (test_all_fn, "all"),
                                         (test_bool_fn, "bool"),
                                         #(test_ne_fn, "ne"),
                                         ):
