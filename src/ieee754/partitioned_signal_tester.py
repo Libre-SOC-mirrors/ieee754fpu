@@ -12,7 +12,8 @@ import textwrap
 import subprocess
 from hashlib import sha256
 from nmigen.back import rtlil
-from nmutil.get_test_path import get_test_path, _StrPath
+from nmutil.get_test_path import get_test_path
+from collections.abc import Sequence
 
 
 def formal(test_case, hdl, *, base_path="formal_test_temp"):
@@ -51,15 +52,7 @@ def formal(test_case, hdl, *, base_path="formal_test_temp"):
             test_case.fail(f"Formal failed:\n{stdout}")
 
 
-@final
 class Layout:
-    __lane_starts_for_sizes
-    """keys are in sorted order"""
-
-    part_indexes
-    """bit indexes of partition points in sorted order, always includes
-    `0` and `self.width`"""
-
     @staticmethod
     def cast(layout, width=None):
         if isinstance(layout, Layout):
@@ -80,7 +73,10 @@ class Layout:
         part_indexes = list(part_indexes)
         part_indexes.sort()
         self.part_indexes = tuple(part_indexes)
-        sizes: List[int] = []
+        """bit indexes of partition points in sorted order, always
+        includes `0` and `self.width`"""
+
+        sizes = []
         for start_index in range(len(self.part_indexes)):
             start = self.part_indexes[start_index]
             for end in self.part_indexes[start_index + 1:]:
@@ -88,6 +84,8 @@ class Layout:
         sizes.sort()
         # build in sorted order
         self.__lane_starts_for_sizes = {size: {} for size in sizes}
+        """keys are in sorted order"""
+
         for start_index in range(len(self.part_indexes)):
             start = self.part_indexes[start_index]
             for end in self.part_indexes[start_index + 1:]:
@@ -109,11 +107,14 @@ class Layout:
         assert width >= 0
         return width
 
-    def partition_points_signals(self, nameNone,
+    def partition_points_signals(self, name=None,
                                  src_loc_at=0):
         if name is None:
             name = Signal(src_loc_at=1 + src_loc_at).name
-        return PartitionPoints({ i for i in self.part_indexes[1:-1] })
+        return PartitionPoints({
+            i: Signal(name=f"{name}_{i}", src_loc_at=1 + src_loc_at)
+            for i in self.part_indexes[1:-1]
+        })
 
     def __repr__(self):
         return f"Layout({self.part_indexes}, width={self.width})"
@@ -158,7 +159,6 @@ class Layout:
         return Lane(target_start, target_end - target_start, target_layout)
 
 
-@final
 class Lane:
     def __init__(self, start, size, layout):
         self.layout = Layout.cast(layout)
@@ -188,18 +188,6 @@ class Lane:
 
     def translate_to(self, target_layout):
         return self.layout.translate_lane_to(self, target_layout)
-
-    @overload
-    def is_active(self, partition_points): ...
-
-    @overload
-    def is_active(self, partition_points): ...
-
-    @overload
-    def is_active(self, partition_points): ...
-
-    @overload
-    def is_active(self, partition_points): ...
 
     def is_active(self, partition_points):
         def get_partition_point(index, invert):
@@ -269,13 +257,14 @@ class PartitionedSignalTester:
             self.test_output.partpoints, self.test_output.sig.width)
         assert self.test_output_layout.is_compatible(self.layouts[0])
         self.reference_output_values = {
-            lane, tuple(
+            lane: Value.cast(reference(lane, tuple(
                 inp.sig[lane.translate_to(layout).as_slice()]
-                for inp, layout in zip(self.inputs, self.layouts))
+                for inp, layout in zip(self.inputs, self.layouts))))
             for lane in self.layouts[0].lanes()
         }
         self.reference_outputs = {
-            lane, name=f"reference_output_{lane.start}_{lane.size}")
+            lane: Signal(value.shape(),
+                         name=f"reference_output_{lane.start}_{lane.size}")
             for lane, value in self.reference_output_values.items()
         }
         for lane, value in self.reference_output_values.items():
@@ -326,9 +315,7 @@ class PartitionedSignalTester:
         for i in range(len(self.inputs)):
             yield self.inputs[i].sig.eq(inputs[i])
 
-    def run_sim(self, test_case, *,
-                engine: Optional[str] = None,
-                base_path: _StrPath = "sim_test_out"):
+    def run_sim(self, test_case, *, engine=None, base_path="sim_test_out"):
         if engine is None:
             sim = Simulator(self.m)
         else:

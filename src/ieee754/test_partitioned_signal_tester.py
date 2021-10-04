@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: LGPL-3-or-later
 # See Notices.txt for copyright information
 
-from typing import Set, Tuple
 from nmigen.hdl.ast import AnyConst, Assert, Assume, Signal
 from nmigen.hdl.dsl import Module
 from ieee754.partitioned_signal_tester import (
@@ -138,8 +137,7 @@ class TestLayout(unittest.TestCase):
 class TestLane(unittest.TestCase):
     def test_is_active(self):
         layout = Layout((0, 8, 16, 24, 32))
-        def do_test(part_starts: Tuple[bool, ...],
-                    expected_lanes: Set[Tuple[int, int]]):
+        def do_test(part_starts, expected_lanes):
             with self.subTest(part_starts=part_starts,
                               expected_lanes=expected_lanes):
                 for lane in layout.lanes():
