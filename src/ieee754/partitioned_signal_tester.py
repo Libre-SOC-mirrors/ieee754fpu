@@ -111,10 +111,10 @@ class Layout:
                                  src_loc_at=0):
         if name is None:
             name = Signal(src_loc_at=1 + src_loc_at).name
-        return PartitionPoints({
-            i: Signal(name=f"{name}_{i}", src_loc_at=1 + src_loc_at)
-            for i in self.part_indexes[1:-1]
-        })
+        pps = {}
+        for i in self.part_indexes[1:-1]:
+            pps[i] = Signal(name=f"{name}_{i}", src_loc_at=1 + src_loc_at)
+        return PartitionPoints(pps)
 
     def __repr__(self):
         return f"Layout({self.part_indexes}, width={self.width})"
@@ -256,19 +256,19 @@ class PartitionedSignalTester:
         self.test_output_layout = Layout(
             self.test_output.partpoints, self.test_output.sig.width)
         assert self.test_output_layout.is_compatible(self.layouts[0])
-        self.reference_output_values = {
-            lane: Value.cast(reference(lane, tuple(
-                inp.sig[lane.translate_to(layout).as_slice()]
-                for inp, layout in zip(self.inputs, self.layouts))))
-            for lane in self.layouts[0].lanes()
-        }
-        self.reference_outputs = {
-            lane: Signal(value.shape(),
-                         name=f"reference_output_{lane.start}_{lane.size}")
-            for lane, value in self.reference_output_values.items()
-        }
+        self.reference_output_values = {}
+        for lane in self.layouts[0].lanes():
+            in_t = []
+            for inp, layout in zip(self.inputs, self.layouts):
+                in_t.append(inp.sig[lane.translate_to(layout).as_slice()])
+            v = Value.cast(reference(lane, tuple(in_t)))
+            self.reference_output_values[lane] = v
+        self.reference_outputs = {}
         for lane, value in self.reference_output_values.items():
-            m.d.comb += self.reference_outputs[lane].eq(value)
+            s = Signal(value.shape(),
+                       name=f"reference_output_{lane.start}_{lane.size}")
+            self.reference_outputs[lane] = s
+            m.d.comb += s.eq(value)
 
     def __hash_256(self, v):
         return int.from_bytes(
@@ -290,13 +290,14 @@ class PartitionedSignalTester:
         bits = self.__hash(f"{case_number} trial {trial}",
                            self.layouts[0].part_signal_count)
         bits |= 1 | (1 << len(self.layouts[0].part_indexes)) | (bits << 1)
-        part_starts = tuple(
-            (bits & (1 << i)) != 0
-            for i in range(len(self.layouts[0].part_indexes)))
-        inputs = tuple(self.__hash(f"{case_number} input {i}",
-                                   self.layouts[i].width)
-                       for i in range(len(self.layouts)))
-        return part_starts, inputs
+        part_starts = []
+        for i in range(len(self.layouts[0].part_indexes)):
+            part_starts.append((bits & (1 << i)) != 0)
+        inputs = []
+        for i in range(len(self.layouts)):
+            inputs.append(self.__hash(f"{case_number} input {i}",
+                                   self.layouts[i].width))
+        return tuple(part_starts), tuple(inputs)
 
     def __format_case(self, case):
         part_starts, inputs = case
