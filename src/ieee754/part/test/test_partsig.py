@@ -893,5 +893,58 @@ class TestPartitionedSignal(unittest.TestCase):
             sim.run()
 
 
+# TODO: adapt to PartitionedSignal. perhaps a different style?
+'''
+    from nmigen.tests.test_hdl_ast import SignedEnum
+    def test_matches(self)
+        s = Signal(4)
+        self.assertRepr(s.matches(), "(const 1'd0)")
+        self.assertRepr(s.matches(1), """
+        (== (sig s) (const 1'd1))
+        """)
+        self.assertRepr(s.matches(0, 1), """
+        (r| (cat (== (sig s) (const 1'd0)) (== (sig s) (const 1'd1))))
+        """)
+        self.assertRepr(s.matches("10--"), """
+        (== (& (sig s) (const 4'd12)) (const 4'd8))
+        """)
+        self.assertRepr(s.matches("1 0--"), """
+        (== (& (sig s) (const 4'd12)) (const 4'd8))
+        """)
+
+    def test_matches_enum(self):
+        s = Signal(SignedEnum)
+        self.assertRepr(s.matches(SignedEnum.FOO), """
+        (== (sig s) (const 1'sd-1))
+        """)
+
+    def test_matches_width_wrong(self):
+        s = Signal(4)
+        with self.assertRaisesRegex(SyntaxError,
+                r"^Match pattern '--' must have the same width as "
+                r"match value \(which is 4\)$"):
+            s.matches("--")
+        with self.assertWarnsRegex(SyntaxWarning,
+                (r"^Match pattern '10110' is wider than match value "
+                 r"\(which has width 4\); "
+                    r"comparison will never be true$")):
+            s.matches(0b10110)
+
+    def test_matches_bits_wrong(self):
+        s = Signal(4)
+        with self.assertRaisesRegex(SyntaxError,
+                (r"^Match pattern 'abc' must consist of 0, 1, "
+                 r"and - \(don't care\) bits, "
+                    r"and may include whitespace$")):
+            s.matches("abc")
+
+    def test_matches_pattern_wrong(self):
+        s = Signal(4)
+        with self.assertRaisesRegex(SyntaxError,
+                r"^Match pattern must be an integer, a string, "
+                r"or an enumeration, not 1\.0$"):
+            s.matches(1.0)
+'''
+
 if __name__ == '__main__':
     unittest.main()
