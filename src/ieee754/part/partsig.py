@@ -88,22 +88,12 @@ class PartitionedSignal(UserValue):
 
     def lower(self):
         return self.sig
-    # now using __Assign__
-    #def eq(self, val):
-    #    return self.sig.eq(getsig(val))
 
     # nmigen-redirected constructs (Mux, Cat, Switch, Assign)
 
-    def __Mux__(self, val1, val2):
-        # print ("partsig mux", self, val1, val2)
-        assert len(val1) == len(val2), \
-            "PartitionedSignal width sources must be the same " \
-            "val1 == %d, val2 == %d" % (len(val1), len(val2))
-        return PMux(self.m, self.partpoints, self, val1, val2)
-
     # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=458
-    #def __Switch__(self, cases, *, src_loc=None, src_loc_at=0,
-    #                               case_src_locs={}):
+    #def __Part__(self, offset, width, stride=1, *, src_loc_at=0):
+    #def __Repl__(self, count, *, src_loc_at=0):
 
     def __Cat__(self, *args, src_loc_at=0):
         args = [self] + list(args)
@@ -113,9 +103,20 @@ class PartitionedSignal(UserValue):
                 "a PartitionedSignal. %s is not." % repr(sig)
         return PCat(self.m, args, self.partpoints)
 
+    def __Mux__(self, val1, val2):
+        # print ("partsig mux", self, val1, val2)
+        assert len(val1) == len(val2), \
+            "PartitionedSignal width sources must be the same " \
+            "val1 == %d, val2 == %d" % (len(val1), len(val2))
+        return PMux(self.m, self.partpoints, self, val1, val2)
+
     def __Assign__(self, val, *, src_loc_at=0):
         # print ("partsig ass", self, val)
         return PAssign(self.m, self, val, self.partpoints)
+
+    # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=458
+    #def __Switch__(self, cases, *, src_loc=None, src_loc_at=0,
+    #                               case_src_locs={}):
 
     # no override needed, Value.__bool__ sufficient
     # def __bool__(self):
