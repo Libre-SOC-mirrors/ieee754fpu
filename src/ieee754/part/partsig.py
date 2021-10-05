@@ -348,6 +348,7 @@ class PartitionedSignal(UserValue):
         self.m.d.comb += result.sig.eq(self.sig)
         return result
 
+    # http://bugs.libre-riscv.org/show_bug.cgi?id=719
     def as_unsigned(self):
         return self.__new_sign(False)
     def as_signed(self):
