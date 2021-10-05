@@ -202,6 +202,7 @@ class TestAddMod(Elaboratable):
         self.add_carry_out = Signal(len(partpoints)+1)
         self.sub_carry_out = Signal(len(partpoints)+1)
         self.neg_output = Signal(width)
+        self.signed_output = Signal(width)
         self.xor_output = Signal(len(partpoints)+1)
         self.bool_output = Signal(len(partpoints)+1)
         self.all_output = Signal(len(partpoints)+1)
@@ -230,8 +231,9 @@ class TestAddMod(Elaboratable):
                                            self.carry_in)
         comb += self.sub_output.eq(sub_out.sig)
         comb += self.sub_carry_out.eq(sub_carry)
-        # neg
+        # neg / signed / unsigned
         comb += self.neg_output.eq((-self.a).sig)
+        comb += self.signed_output.eq(self.a.as_signed())
         # horizontal operators
         comb += self.xor_output.eq(self.a.xor())
         comb += self.bool_output.eq(self.a.bool())
@@ -749,6 +751,9 @@ class TestPartitionedSignal(unittest.TestCase):
                 a = (a & mask) >> pos  # shift it to the beginning
                 return ((-a) << pos) & mask, 0  # negate and shift it back
 
+            def test_signed_fn(carry_in, a, b, mask):
+                return a & mask, 0
+
             def test_op(msg_prefix, carry, test_fn, mod_attr, *mask_list):
                 rand_data = []
                 for i in range(100):
@@ -801,6 +806,7 @@ class TestPartitionedSignal(unittest.TestCase):
                                         (test_add_fn, "add"),
                                         (test_sub_fn, "sub"),
                                         (test_neg_fn, "neg"),
+                                        (test_signed_fn, "signed"),
                                         ):
                 yield part_mask.eq(0)
                 yield from test_op("16-bit", 1, test_fn, mod_attr, 0xFFFF)

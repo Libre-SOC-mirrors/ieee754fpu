@@ -30,7 +30,7 @@ from ieee754.part_cat.pcat import PCat
 from operator import or_, xor, and_, not_
 
 from nmigen import (Signal, Const)
-from nmigen.hdl.ast import UserValue
+from nmigen.hdl.ast import UserValue, Shape
 
 
 def getsig(op1):
@@ -342,9 +342,16 @@ class PartitionedSignal(UserValue):
     # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=716
     # def __getitem__(self, key):
 
-    # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=719
-    #def as_unsigned(self):
-    #def as_signed(self):
+    def __new_sign(self, signed):
+        shape = Shape(len(self), signed=signed)
+        result = PartitionedSignal.like(self, shape=shape)
+        self.m.d.comb += result.sig.eq(self.sig)
+        return result
+
+    def as_unsigned(self):
+        return self.__new_sign(False)
+    def as_signed(self):
+        return self.__new_sign(True)
 
     # useful operators
 
