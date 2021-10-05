@@ -245,9 +245,11 @@ class PartitionedSignal(UserValue):
         return result
 
     def __mul__(self, other):
+        raise NotImplementedError # too complicated at the moment
         return Operator("*", [self, other])
 
     def __rmul__(self, other):
+        raise NotImplementedError # too complicated at the moment
         return Operator("*", [other, self])
 
     def __check_divisor(self):
