@@ -27,6 +27,7 @@ from ieee754.part_mul_add.partpoints import make_partition2, PartitionPoints
 from ieee754.part_mux.part_mux import PMux
 from ieee754.part_ass.passign import PAssign
 from ieee754.part_cat.pcat import PCat
+from ieee754.part_repl.prepl import PRepl
 from operator import or_, xor, and_, not_
 
 from nmigen import (Signal, Const)
@@ -93,7 +94,9 @@ class PartitionedSignal(UserValue):
 
     # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=458
     #def __Part__(self, offset, width, stride=1, *, src_loc_at=0):
-    #def __Repl__(self, count, *, src_loc_at=0):
+
+    def __Repl__(self, count, *, src_loc_at=0):
+        return PRepl(self.m, self, count, self.partpoints)
 
     def __Cat__(self, *args, src_loc_at=0):
         args = [self] + list(args)
