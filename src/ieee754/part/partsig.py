@@ -119,7 +119,7 @@ class PartitionedSignal(UserValue):
             assert isinstance(sig, PartitionedSignal), \
                 "All PartitionedSignal.__Cat__ arguments must be " \
                 "a PartitionedSignal. %s is not." % repr(sig)
-        return PCat(self.m, args, self.partpoints)
+        return PCat(self.m, args, self.ptype)
 
     def __Mux__(self, val1, val2):
         # print ("partsig mux", self, val1, val2)

@@ -59,18 +59,17 @@ def get_runlengths(pbit, size):
 
 
 class PartitionedCat(Elaboratable):
-    def __init__(self, catlist, mask):
+    def __init__(self, catlist, ctx):
         """Create a ``PartitionedCat`` operator
         """
         # work out the length (total of all PartitionedSignals)
         self.catlist = catlist
-        if isinstance(mask, dict):
-            mask = list(mask.values())
-        self.mask = mask
+        self.ptype = ctx
         width = 0
         for p in catlist:
             width += len(p.sig)
         self.width = width
+        mask = ctx.get_mask()
         self.output = PartitionedSignal(mask, self.width, reset_less=True)
         self.partition_points = self.output.partpoints
         self.mwidth = len(self.partition_points)+1
@@ -94,10 +93,10 @@ class PartitionedCat(Elaboratable):
 
         keys = list(self.partition_points.keys())
         print ("keys", keys, "values", self.partition_points.values())
-        print ("mask", self.mask)
-        with m.Switch(Cat(self.mask)):
+        print ("ptype", self.ptype)
+        with m.Switch(self.ptype.get_switch()):
             # for each partition possibility, create a Cat sequence
-            for pbit in range(1<<len(keys)):
+            for pbit in self.ptype.get_cases():
                 # set up some indices pointing to where things have got
                 # then when called below in the inner nested loop they give
                 # the relevant sequential chunk
@@ -129,7 +128,7 @@ if __name__ == "__main__":
     a = PartitionedSignal(mask, 32)
     b = PartitionedSignal(mask, 16)
     catlist = [a, b]
-    m.submodules.cat = cat = PartitionedCat(catlist, mask)
+    m.submodules.cat = cat = PartitionedCat(catlist, a.ptype)
 
     traces = cat.ports()
     sim = create_simulator(m, traces, "partcat")

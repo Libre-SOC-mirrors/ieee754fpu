@@ -4,10 +4,10 @@
 
 
 modcount = 0 # global for now
-def PCat(m, arglist, mask):
+def PCat(m, arglist, ctx):
     from ieee754.part_cat.cat import PartitionedCat # avoid recursive import
     global modcount
     modcount += 1
-    pc = PartitionedCat(arglist, mask)
+    pc = PartitionedCat(arglist, ctx)
     setattr(m.submodules, "pcat%d" % modcount, pc)
     return pc.output
