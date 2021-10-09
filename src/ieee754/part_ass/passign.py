@@ -17,11 +17,11 @@ See:
 
 
 modcount = 0 # global for now
-def PAssign(m, val, assign, mask):
+def PAssign(m, val, assign, ctx):
     from ieee754.part_ass.assign import PartitionedAssign # recursion issue
     global modcount
     modcount += 1
-    pc = PartitionedAssign(val.shape(), assign, mask)
+    pc = PartitionedAssign(val.shape(), assign, ctx)
     setattr(m.submodules, "pass%d" % modcount, pc)
     return val.lower().eq(pc.output.lower())
 

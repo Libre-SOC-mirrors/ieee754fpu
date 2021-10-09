@@ -130,7 +130,7 @@ class PartitionedSignal(UserValue):
 
     def __Assign__(self, val, *, src_loc_at=0):
         # print ("partsig ass", self, val)
-        return PAssign(self.m, self, val, self.partpoints)
+        return PAssign(self.m, self, val, self.ptype)
 
     # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=458
     #def __Switch__(self, cases, *, src_loc=None, src_loc_at=0,
