@@ -43,17 +43,16 @@ def get_runlengths(pbit, size):
 
 
 class PartitionedRepl(Elaboratable):
-    def __init__(self, repl, qty, mask):
+    def __init__(self, repl, qty, ctx):
         """Create a ``PartitionedRepl`` operator
         """
         # work out the length (total of all PartitionedSignals)
         self.repl = repl
         self.qty = qty
         width, signed = repl.shape()
-        if isinstance(mask, dict):
-            mask = list(mask.values())
-        self.mask = mask
+        self.ptype = ctx
         self.shape = (width * qty), signed
+        mask = ctx.get_mask()
         self.output = PartitionedSignal(mask, self.shape, reset_less=True)
         self.partition_points = self.output.partpoints
         self.mwidth = len(self.partition_points)+1
@@ -82,14 +81,14 @@ class PartitionedRepl(Elaboratable):
 
         keys = list(self.partition_points.keys())
         print ("keys", keys, "values", self.partition_points.values())
-        print ("mask", self.mask)
+        print ("ptype", self.ptype)
         outpartsize = len(self.output) // self.mwidth
         width, signed = self.output.shape()
         print ("width, signed", width, signed)
 
-        with m.Switch(Cat(self.mask)):
+        with m.Switch(self.ptype.get_switch()):
             # for each partition possibility, create a Repl sequence
-            for pbit in range(1<<len(keys)):
+            for pbit in self.ptype.get_cases():
                 # set up some indices pointing to where things have got
                 # then when called below in the inner nested loop they give
                 # the relevant sequential chunk
@@ -118,7 +117,8 @@ if __name__ == "__main__":
     m = Module()
     mask = Signal(3)
     a = PartitionedSignal(mask, 32)
-    m.submodules.repl = repl = PartitionedRepl(a, 2, mask)
+    print ("a.ptype", a.ptype)
+    m.submodules.repl = repl = PartitionedRepl(a, 2, a.ptype)
     omask = (1<<len(repl.output))-1
 
     traces = repl.ports()
@@ -154,9 +154,23 @@ if __name__ == "__main__":
 
     # Scalar
     m = Module()
+    class PartType:
+        def __init__(self, mask):
+            self.mask = mask
+        def get_mask(self):
+            return mask
+        def get_switch(self):
+            return Cat(self.get_mask())
+        def get_cases(self):
+            return range(1<<len(self.get_mask()))
+        @property
+        def blanklanes(self):
+            return 0
+
     mask = Signal(3)
+    ptype = PartType(mask)
     a = Signal(32)
-    m.submodules.ass = ass = PartitionedRepl(a, 2, mask)
+    m.submodules.ass = ass = PartitionedRepl(a, 2, ptype)
     omask = (1<<len(ass.output))-1
 
     traces = ass.ports()

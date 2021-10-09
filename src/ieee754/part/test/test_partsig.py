@@ -484,7 +484,6 @@ class TestRepl(unittest.TestCase):
                             list(map(hex, apart)), list(map(hex, bpart)))
 
                     yield module.a.lower().eq(a)
-                    yield module.b.lower().eq(b)
                     yield Delay(0.1e-6)
 
                     y = 0

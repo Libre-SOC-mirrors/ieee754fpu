@@ -30,7 +30,7 @@ from ieee754.part_cat.pcat import PCat
 from ieee754.part_repl.prepl import PRepl
 from operator import or_, xor, and_, not_
 
-from nmigen import (Signal, Const)
+from nmigen import (Signal, Const, Cat)
 from nmigen.hdl.ast import UserValue, Shape
 
 
@@ -56,6 +56,21 @@ for name in ['add', 'eq', 'gt', 'ge', 'ls', 'xor', 'bool', 'all']:
     modnames[name] = 0
 
 
+
+class PartType: # TODO decide name
+    def __init__(self, psig):
+        self.psig = psig
+    def get_mask(self):
+        return list(self.psig.partpoints.values())
+    def get_switch(self):
+        return Cat(self.get_mask())
+    def get_cases(self):
+        return range(1<<len(self.get_mask()))
+    @property
+    def blanklanes(self):
+        return 0
+
+
 class PartitionedSignal(UserValue):
     # XXX ################################################### XXX
     # XXX Keep these functions in the same order as ast.Value XXX
@@ -69,7 +84,7 @@ class PartitionedSignal(UserValue):
             self.partpoints = mask
         else:
             self.partpoints = make_partition2(mask, width)
-
+        self.ptype = PartType(self)
 
     def set_module(self, m):
         self.m = m
@@ -96,7 +111,7 @@ class PartitionedSignal(UserValue):
     #def __Part__(self, offset, width, stride=1, *, src_loc_at=0):
 
     def __Repl__(self, count, *, src_loc_at=0):
-        return PRepl(self.m, self, count, self.partpoints)
+        return PRepl(self.m, self, count, self.ptype)
 
     def __Cat__(self, *args, src_loc_at=0):
         args = [self] + list(args)

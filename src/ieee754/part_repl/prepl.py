@@ -17,11 +17,11 @@ See:
 
 
 modcount = 0 # global for now
-def PRepl(m, repl, qty, mask):
+def PRepl(m, repl, qty, ctx):
     from ieee754.part_repl.repl import PartitionedRepl # recursion issue
     global modcount
     modcount += 1
-    pc = PartitionedRepl(repl, qty, mask)
+    pc = PartitionedRepl(repl, qty, ctx)
     setattr(m.submodules, "repl%d" % modcount, pc)
     return pc.output
 
