@@ -322,9 +322,8 @@ class TestMux(unittest.TestCase):
                         outval2 = (yield module.mux_out2)
                         msg = f"{msg_prefix}: mux " + \
                             f"0x{sel:X} ? 0x{a:X} : 0x{b:X}" + \
-                            f" => 0x{y:X} != 0x{outval:X}, masklist %s"
+                            f" => 0x{y:X} != 0x{outval2:X}, masklist %s"
                         # print ((msg % str(maskbit_list)).format(locals()))
-                        self.assertEqual(y, outval, msg % str(maskbit_list))
                         self.assertEqual(y, outval2, msg % str(maskbit_list))
 
             yield part_mask.eq(0)
