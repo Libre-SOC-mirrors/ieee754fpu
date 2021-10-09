@@ -19,12 +19,12 @@ from ieee754.part_mul_add.partpoints import make_partition2
 
 
 modcount = 0 # global for now
-def PMux(m, mask, sel, a, b):
+def PMux(m, mask, sel, a, b, ctx):
     global modcount
     modcount += 1
     width = len(a.sig)  # get width
     part_pts = make_partition2(mask, width) # create partition points
-    pm = PartitionedMux(width, part_pts)
+    pm = PartitionedMux(width, part_pts, ctx)
     m.d.comb += pm.a.eq(a.sig)
     m.d.comb += pm.b.eq(b.sig)
     m.d.comb += pm.sel.eq(sel)
@@ -41,8 +41,9 @@ class PartitionedMux(Elaboratable):
     consequently the incoming selector (sel) can completely
     ignore what the *actual* partition bits are.
     """
-    def __init__(self, width, partition_points):
+    def __init__(self, width, partition_points, ctx):
         self.width = width
+        self.ctx = ctx
         self.partition_points = PartitionPoints(partition_points)
         self.mwidth = len(self.partition_points)+1
         self.a = Signal(width, reset_less=True)

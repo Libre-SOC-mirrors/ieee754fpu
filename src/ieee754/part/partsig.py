@@ -126,7 +126,7 @@ class PartitionedSignal(UserValue):
         assert len(val1) == len(val2), \
             "PartitionedSignal width sources must be the same " \
             "val1 == %d, val2 == %d" % (len(val1), len(val2))
-        return PMux(self.m, self.partpoints, self, val1, val2)
+        return PMux(self.m, self.partpoints, self, val1, val2, self.ptype)
 
     def __Assign__(self, val, *, src_loc_at=0):
         # print ("partsig ass", self, val)

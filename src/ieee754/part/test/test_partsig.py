@@ -66,7 +66,6 @@ class TestAddMod2(Elaboratable):
         self.le_output = Signal(len(partpoints)+1)
         self.mux_sel2 = Signal(len(partpoints)+1)
         self.mux_sel2 = PartitionedSignal(partpoints, len(partpoints))
-        self.mux_out = Signal(width)
         self.mux2_out = Signal(width)
         self.carry_in = Signal(len(partpoints)+1)
         self.add_carry_out = Signal(len(partpoints)+1)
@@ -103,7 +102,6 @@ class TestAddMod2(Elaboratable):
         sync += self.ls_output.eq(self.a << self.b)
         sync += self.rs_output.eq(self.a >> self.b)
         ppts = self.partpoints
-        sync += self.mux_out.eq(PMux(m, ppts, self.mux_sel, self.a, self.b))
         sync += self.mux_out2.eq(Mux(self.mux_sel2, self.a, self.b))
         # scalar left shift
         comb += self.bsig.eq(self.b.lower())
@@ -120,7 +118,6 @@ class TestMuxMod(Elaboratable):
         self.b = PartitionedSignal(partpoints, width)
         self.mux_sel = Signal(len(partpoints)+1)
         self.mux_sel2 = PartitionedSignal(partpoints, len(partpoints)+1)
-        self.mux_out = Signal(width)
         self.mux_out2 = Signal(width)
 
     def elaborate(self, platform):
@@ -132,7 +129,6 @@ class TestMuxMod(Elaboratable):
         self.mux_sel2.set_module(m)
         ppts = self.partpoints
 
-        comb += self.mux_out.eq(PMux(m, ppts, self.mux_sel, self.a, self.b))
         comb += self.mux_out2.eq(Mux(self.mux_sel2, self.a, self.b))
 
         return m
@@ -278,7 +274,6 @@ class TestMux(unittest.TestCase):
         traces = [part_mask,
                   module.a.sig,
                   module.b.sig,
-                  module.mux_out,
                   module.mux_out2]
         sim = create_simulator(module, traces, test_name)
 
@@ -324,7 +319,6 @@ class TestMux(unittest.TestCase):
                             else:
                                 y |= (b & mask)
                         # check the result
-                        outval = (yield module.mux_out)
                         outval2 = (yield module.mux_out2)
                         msg = f"{msg_prefix}: mux " + \
                             f"0x{sel:X} ? 0x{a:X} : 0x{b:X}" + \
