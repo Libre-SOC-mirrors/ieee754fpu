@@ -43,15 +43,27 @@ def layout(elwid, signed, part_counts, lane_shapes):
         for start in range(0, part_count, c):
             add_p(start * part_wid) # start of lane
             add_p(start * part_wid + lane_shapes[i]) # start of padding
+    # do not need the breakpoints at the very start or the very end
+    dpoints.pop(0, None)
+    dpoints.pop(width, None)
     # second stage, add (map to) the elwidth==i expressions
     points = {}
     for p in dpoints.keys():
         points[p] = map(lambda i: elwid == i, dpoints[p])
         points[p] = reduce(operator.or_, points[p])
-    # do not need the breakpoints at the very start or the very end
-    points.pop(0, None)
-    points.pop(width, None)
-    return (PartitionPoints(points), width, lane_shapes,
+    # third stage, create the binary values which *if* elwidth is set to i
+    # *would* result in the mask at that elwidth being set to this value
+    # these can easily be double-checked through Assertion
+    plist = list(points.keys())
+    plist.sort()
+    bitp = {}
+    for i in part_counts.keys():
+        bitp[i] = 0
+        for p, elwidths in dpoints.items():
+            if i in elwidths:
+               bitpos = plist.index(p)
+               bitp[i] |= 1<< bitpos
+    return (PartitionPoints(points), bitp, width, lane_shapes,
         part_wid, part_count)
 
 if __name__ == '__main__':
@@ -71,8 +83,10 @@ if __name__ == '__main__':
 
     # https://bugs.libre-soc.org/show_bug.cgi?id=713#c30
     elwid = Signal(2)
-    pp,b,c,d,e = layout(elwid, False, part_counts, l)
+    pp,bitp,b,c,d,e = layout(elwid, False, part_counts, l)
     pprint ((pp,b,c,d,e))
+    for k, v in bitp.items():
+        print ("bitp elwidth=%d" % k, bin(v))
 
     m = Module()
     def process():
