@@ -98,6 +98,12 @@ if __name__ == '__main__':
                 val = yield pval # get nmigen to evaluate pp
                 ppt.append(val)
             pprint((i, (ppt,b,c,d,e)))
+            # check the results against bitp static-expected partition points
+            # https://bugs.libre-soc.org/show_bug.cgi?id=713#c47
+            # https://stackoverflow.com/a/27165694
+            ival = int(''.join(map(str, map(int, ppt))), 2)
+            assert ival == bitp[i]
+
     sim = Simulator(m)
     sim.add_process(process)
     sim.run()
