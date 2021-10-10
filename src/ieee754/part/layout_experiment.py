@@ -2,7 +2,10 @@
 # SPDX-License-Identifier: LGPL-3-or-later
 # See Notices.txt for copyright information
 """
-Links: https://bugs.libre-soc.org/show_bug.cgi?id=713#c20
+Links:
+* https://libre-soc.org/3d_gpu/architecture/dynamic_simd/shape/
+* https://bugs.libre-soc.org/show_bug.cgi?id=713#c20
+* https://bugs.libre-soc.org/show_bug.cgi?id=713#c30
 """
 
 from nmigen import Signal, Module, Elaboratable, Mux, Cat, Shape, Repl
@@ -18,11 +21,16 @@ from ieee754.part_mul_add.partpoints import PartitionPoints
 # main fn
 def layout(elwid, signed, part_counts, lane_shapes):
     # identify if the lane_shapes is a mapping (dict, etc.)
+    # if not, then assume that it is an integer (width) that
+    # needs to be requested across all partitions
     if not isinstance(lane_shapes, Mapping):
         lane_shapes = {i: lane_shapes for i in part_counts}
+    # compute a set of partition widths
     part_wid = -min(-lane_shapes[i] // c for i, c in part_counts.items())
     part_count = max(part_counts.values())
+    # calculate the minumum width required
     width = part_wid * part_count
+    # create the breakpoints dictionary
     points = {}
     for i, c in part_counts.items():
         def add_p(p):
@@ -30,6 +38,7 @@ def layout(elwid, signed, part_counts, lane_shapes):
         for start in range(0, part_count, c):
             add_p(start * part_wid) # start of lane
             add_p(start * part_wid + lane_shapes[i]) # start of padding
+    # do not need the breakpoints at the very start or the very end
     points.pop(0, None)
     points.pop(width, None)
     return (PartitionPoints(points), width, lane_shapes,
