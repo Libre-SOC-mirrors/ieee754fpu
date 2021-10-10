@@ -56,7 +56,11 @@ for name in ['add', 'eq', 'gt', 'ge', 'ls', 'xor', 'bool', 'all']:
     modnames[name] = 0
 
 
-
+# Prototype https://bugs.libre-soc.org/show_bug.cgi?id=713#c53
+# this provides a "compatibility" layer with existing PartitionedSignal
+# behaviour.  the idea is that this interface defines which "combinations"
+# of partition selections are relevant, and as an added bonus it says
+# which partition lanes are completely irrelevant (padding, blank).
 class PartType: # TODO decide name
     def __init__(self, psig):
         self.psig = psig
@@ -69,6 +73,28 @@ class PartType: # TODO decide name
     @property
     def blanklanes(self):
         return 0
+
+# this one would be an elwidth version
+# see https://bugs.libre-soc.org/show_bug.cgi?id=713#c34
+# it requires an "adapter" which is the layout() function
+# where the PartitionPoints was *created* by the layout()
+# function and this class then "understands" the relationship
+# between elwidth and the PartitionPoints that were created
+# by layout()
+class ElWidthPartType: # TODO decide name
+    def __init__(self, psig):
+        self.psig = psig
+    def get_mask(self):
+        ppoints, pbits = layout()
+        return ppoints.values() # i think
+    def get_switch(self):
+        return self.psig.elwidth
+    def get_cases(self):
+        ppoints, pbits = layout()
+        return pbits
+    @property
+    def blanklanes(self):
+        return 0 # TODO
 
 
 class PartitionedSignal(UserValue):
