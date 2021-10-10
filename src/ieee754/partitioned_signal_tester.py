@@ -6,7 +6,7 @@ from nmigen.hdl.ast import (AnyConst, Assert, Signal, Value, ValueCastable)
 from nmigen.hdl.dsl import Module
 from nmigen.hdl.ir import Elaboratable, Fragment
 from nmigen.sim import Simulator, Delay
-from ieee754.part.partsig import PartitionedSignal, PartitionPoints
+from ieee754.part.partsig import SimdSignal, PartitionPoints
 import unittest
 import textwrap
 import subprocess
@@ -216,7 +216,7 @@ class Lane:
         return retval
 
 
-class PartitionedSignalTester:
+class SimdSignalTester:
 
     def __init__(self, m, operation, reference, *layouts,
                  src_loc_at=0, additional_case_count=30,
@@ -232,7 +232,7 @@ class PartitionedSignalTester:
                 assert self.layouts[0].is_compatible(layout)
             self.layouts.append(layout)
             name = f"input_{len(self.inputs)}"
-            ps = PartitionedSignal(
+            ps = SimdSignal(
                 layout.partition_points_signals(name=name,
                                                 src_loc_at=1 + src_loc_at),
                 layout.width,
@@ -252,7 +252,7 @@ class PartitionedSignalTester:
         self.seed = seed
         self.case_number = Signal(64)
         self.test_output = operation(tuple(self.inputs))
-        assert isinstance(self.test_output, PartitionedSignal)
+        assert isinstance(self.test_output, SimdSignal)
         self.test_output_layout = Layout(
             self.test_output.partpoints, self.test_output.sig.width)
         assert self.test_output_layout.is_compatible(self.layouts[0])

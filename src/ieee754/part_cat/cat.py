@@ -34,7 +34,7 @@ from nmigen import Signal, Module, Elaboratable, Cat, C
 from nmigen.back.pysim import Simulator, Settle
 
 from ieee754.part_mul_add.partpoints import PartitionPoints
-from ieee754.part.partsig import PartitionedSignal
+from ieee754.part.partsig import SimdSignal
 from ieee754.part.test.test_partsig import create_simulator
 
 
@@ -62,7 +62,7 @@ class PartitionedCat(Elaboratable):
     def __init__(self, catlist, ctx):
         """Create a ``PartitionedCat`` operator
         """
-        # work out the length (total of all PartitionedSignals)
+        # work out the length (total of all SimdSignals)
         self.catlist = catlist
         self.ptype = ctx
         width = 0
@@ -70,7 +70,7 @@ class PartitionedCat(Elaboratable):
             width += len(p.sig)
         self.width = width
         mask = ctx.get_mask()
-        self.output = PartitionedSignal(mask, self.width, reset_less=True)
+        self.output = SimdSignal(mask, self.width, reset_less=True)
         self.partition_points = self.output.partpoints
         self.mwidth = len(self.partition_points)+1
 
@@ -125,8 +125,8 @@ class PartitionedCat(Elaboratable):
 if __name__ == "__main__":
     m = Module()
     mask = Signal(3)
-    a = PartitionedSignal(mask, 32)
-    b = PartitionedSignal(mask, 16)
+    a = SimdSignal(mask, 32)
+    b = SimdSignal(mask, 16)
     catlist = [a, b]
     m.submodules.cat = cat = PartitionedCat(catlist, a.ptype)
 

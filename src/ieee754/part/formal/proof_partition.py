@@ -41,7 +41,7 @@ from nmutil.formaltest import FHDLTestCase
 from nmutil.gtkw import write_gtkw
 
 from ieee754.part_mul_add.partpoints import PartitionPoints
-from ieee754.part.partsig import PartitionedSignal
+from ieee754.part.partsig import SimdSignal
 
 
 class PartitionedPattern(Elaboratable):
@@ -347,7 +347,7 @@ class OpDriver(Elaboratable):
         # setup inputs and outputs
         operands = list()
         for i in range(nops):
-            inp = PartitionedSignal(points, width, name=f"i_{i+1}")
+            inp = SimdSignal(points, width, name=f"i_{i+1}")
             inp.set_module(m)
             operands.append(inp)
         if part_out:
@@ -359,7 +359,7 @@ class OpDriver(Elaboratable):
         output = Signal(out_width)
         # perform the operation on the partitioned signals
         result = self.op(*operands)
-        if isinstance(result, PartitionedSignal):
+        if isinstance(result, SimdSignal):
             comb += output.eq(result.sig)
         else:
             # handle operations that return plain Signals

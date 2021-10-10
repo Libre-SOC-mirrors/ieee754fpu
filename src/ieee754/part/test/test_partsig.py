@@ -6,7 +6,7 @@ from nmigen import Signal, Module, Elaboratable, Mux, Cat, Shape, Repl
 from nmigen.back.pysim import Simulator, Delay, Settle
 from nmigen.cli import rtlil
 
-from ieee754.part.partsig import PartitionedSignal
+from ieee754.part.partsig import SimdSignal
 from ieee754.part_mux.part_mux import PMux
 
 from random import randint
@@ -49,8 +49,8 @@ def create_simulator(module, traces, test_name):
 class TestAddMod2(Elaboratable):
     def __init__(self, width, partpoints):
         self.partpoints = partpoints
-        self.a = PartitionedSignal(partpoints, width)
-        self.b = PartitionedSignal(partpoints, width)
+        self.a = SimdSignal(partpoints, width)
+        self.b = SimdSignal(partpoints, width)
         self.bsig = Signal(width)
         self.add_output = Signal(width)
         self.ls_output = Signal(width) # left shift
@@ -65,7 +65,7 @@ class TestAddMod2(Elaboratable):
         self.lt_output = Signal(len(partpoints)+1)
         self.le_output = Signal(len(partpoints)+1)
         self.mux_sel2 = Signal(len(partpoints)+1)
-        self.mux_sel2 = PartitionedSignal(partpoints, len(partpoints))
+        self.mux_sel2 = SimdSignal(partpoints, len(partpoints))
         self.mux2_out = Signal(width)
         self.carry_in = Signal(len(partpoints)+1)
         self.add_carry_out = Signal(len(partpoints)+1)
@@ -114,10 +114,10 @@ class TestAddMod2(Elaboratable):
 class TestMuxMod(Elaboratable):
     def __init__(self, width, partpoints):
         self.partpoints = partpoints
-        self.a = PartitionedSignal(partpoints, width)
-        self.b = PartitionedSignal(partpoints, width)
+        self.a = SimdSignal(partpoints, width)
+        self.b = SimdSignal(partpoints, width)
         self.mux_sel = Signal(len(partpoints)+1)
-        self.mux_sel2 = PartitionedSignal(partpoints, len(partpoints)+1)
+        self.mux_sel2 = SimdSignal(partpoints, len(partpoints)+1)
         self.mux_out2 = Signal(width)
 
     def elaborate(self, platform):
@@ -137,8 +137,8 @@ class TestMuxMod(Elaboratable):
 class TestCatMod(Elaboratable):
     def __init__(self, width, partpoints):
         self.partpoints = partpoints
-        self.a = PartitionedSignal(partpoints, width)
-        self.b = PartitionedSignal(partpoints, width*2)
+        self.a = SimdSignal(partpoints, width)
+        self.b = SimdSignal(partpoints, width*2)
         self.cat_out = Signal(width*3)
 
     def elaborate(self, platform):
@@ -155,7 +155,7 @@ class TestCatMod(Elaboratable):
 class TestReplMod(Elaboratable):
     def __init__(self, width, partpoints):
         self.partpoints = partpoints
-        self.a = PartitionedSignal(partpoints, width)
+        self.a = SimdSignal(partpoints, width)
         self.repl_sel = Signal(len(partpoints)+1)
         self.repl_out = Signal(width*2)
 
@@ -176,8 +176,8 @@ class TestAssMod(Elaboratable):
         if scalar:
             self.a = Signal(width)
         else:
-            self.a = PartitionedSignal(partpoints, width)
-        self.ass_out = PartitionedSignal(partpoints, out_shape)
+            self.a = SimdSignal(partpoints, width)
+        self.ass_out = SimdSignal(partpoints, out_shape)
 
     def elaborate(self, platform):
         m = Module()
@@ -194,8 +194,8 @@ class TestAssMod(Elaboratable):
 class TestAddMod(Elaboratable):
     def __init__(self, width, partpoints):
         self.partpoints = partpoints
-        self.a = PartitionedSignal(partpoints, width)
-        self.b = PartitionedSignal(partpoints, width)
+        self.a = SimdSignal(partpoints, width)
+        self.b = SimdSignal(partpoints, width)
         self.bsig = Signal(width)
         self.add_output = Signal(width)
         self.ls_output = Signal(width) # left shift
@@ -662,7 +662,7 @@ class TestAssign(unittest.TestCase):
                     self.run_tst(16, out_width, sign, scalar)
 
 
-class TestPartitionedSignal(unittest.TestCase):
+class TestSimdSignal(unittest.TestCase):
     def test(self):
         width = 16
         part_mask = Signal(3)  # divide into 4-bits
@@ -1001,7 +1001,7 @@ class TestPartitionedSignal(unittest.TestCase):
             sim.run()
 
 
-# TODO: adapt to PartitionedSignal. perhaps a different style?
+# TODO: adapt to SimdSignal. perhaps a different style?
 '''
     from nmigen.tests.test_hdl_ast import SignedEnum
     def test_matches(self)

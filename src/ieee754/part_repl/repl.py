@@ -19,7 +19,7 @@ from nmigen.back.pysim import Simulator, Settle
 from nmigen.cli import rtlil
 
 from ieee754.part_mul_add.partpoints import PartitionPoints
-from ieee754.part.partsig import PartitionedSignal
+from ieee754.part.partsig import SimdSignal
 
 
 def get_runlengths(pbit, size):
@@ -46,24 +46,24 @@ class PartitionedRepl(Elaboratable):
     def __init__(self, repl, qty, ctx):
         """Create a ``PartitionedRepl`` operator
         """
-        # work out the length (total of all PartitionedSignals)
+        # work out the length (total of all SimdSignals)
         self.repl = repl
         self.qty = qty
         width, signed = repl.shape()
         self.ptype = ctx
         self.shape = (width * qty), signed
         mask = ctx.get_mask()
-        self.output = PartitionedSignal(mask, self.shape, reset_less=True)
+        self.output = SimdSignal(mask, self.shape, reset_less=True)
         self.partition_points = self.output.partpoints
         self.mwidth = len(self.partition_points)+1
 
     def get_chunk(self, y, numparts):
         x = self.repl
-        if not isinstance(x, PartitionedSignal):
+        if not isinstance(x, SimdSignal):
             # assume Scalar. totally different rules
             end = numparts * (len(x) // self.mwidth)
             return x[:end]
-        # PartitionedSignal: start at partition point
+        # SimdSignal: start at partition point
         keys = [0] + list(x.partpoints.keys()) + [len(x)]
         # get current index and increment it (for next Repl chunk)
         upto = y[0]
@@ -107,7 +107,7 @@ class PartitionedRepl(Elaboratable):
         return m
 
     def ports(self):
-        if isinstance(self.repl, PartitionedSignal):
+        if isinstance(self.repl, SimdSignal):
             return [self.repl.lower(), self.output.lower()]
         return [self.repl, self.output.lower()]
 
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     from ieee754.part.test.test_partsig import create_simulator
     m = Module()
     mask = Signal(3)
-    a = PartitionedSignal(mask, 32)
+    a = SimdSignal(mask, 32)
     print ("a.ptype", a.ptype)
     m.submodules.repl = repl = PartitionedRepl(a, 2, a.ptype)
     omask = (1<<len(repl.output))-1

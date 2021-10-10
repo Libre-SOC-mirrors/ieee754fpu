@@ -19,7 +19,7 @@ from nmigen.back.pysim import Simulator, Settle
 from nmutil.extend import ext
 
 from ieee754.part_mul_add.partpoints import PartitionPoints
-from ieee754.part.partsig import PartitionedSignal
+from ieee754.part.partsig import SimdSignal
 
 
 def get_runlengths(pbit, size):
@@ -46,22 +46,22 @@ class PartitionedAssign(Elaboratable):
     def __init__(self, shape, assign, ctx):
         """Create a ``PartitionedAssign`` operator
         """
-        # work out the length (total of all PartitionedSignals)
+        # work out the length (total of all SimdSignals)
         self.assign = assign
         self.ptype = ctx
         self.shape = shape
         mask = ctx.get_mask()
-        self.output = PartitionedSignal(mask, self.shape, reset_less=True)
+        self.output = SimdSignal(mask, self.shape, reset_less=True)
         self.partition_points = self.output.partpoints
         self.mwidth = len(self.partition_points)+1
 
     def get_chunk(self, y, numparts):
         x = self.assign
-        if not isinstance(x, PartitionedSignal):
+        if not isinstance(x, SimdSignal):
             # assume Scalar. totally different rules
             end = numparts * (len(x) // self.mwidth)
             return x[:end]
-        # PartitionedSignal: start at partition point
+        # SimdSignal: start at partition point
         keys = [0] + list(x.partpoints.keys()) + [len(x)]
         # get current index and increment it (for next Assign chunk)
         upto = y[0]
@@ -109,7 +109,7 @@ class PartitionedAssign(Elaboratable):
         return m
 
     def ports(self):
-        if isinstance(self.assign, PartitionedSignal):
+        if isinstance(self.assign, SimdSignal):
             return [self.assign.lower(), self.output.lower()]
         return [self.assign, self.output.lower()]
 
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     from ieee754.part.test.test_partsig import create_simulator
     m = Module()
     mask = Signal(3)
-    a = PartitionedSignal(mask, 32)
+    a = SimdSignal(mask, 32)
     m.submodules.ass = ass = PartitionedAssign(signed(48), a, a.ptype)
     omask = (1<<len(ass.output))-1
 

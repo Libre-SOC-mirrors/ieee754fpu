@@ -4,7 +4,7 @@
 from nmigen.hdl.ast import AnyConst, Assert, Assume, Signal
 from nmigen.hdl.dsl import Module
 from ieee754.partitioned_signal_tester import (
-    PartitionedSignalTester, Layout, Lane, formal)
+    SimdSignalTester, Layout, Lane, formal)
 import unittest
 
 
@@ -183,17 +183,17 @@ class TestLane(unittest.TestCase):
                           (0, 1, 2, 3, 4, 5, 6, 7)])
 
 
-class TestPartitionedSignalTester(unittest.TestCase):
+class TestSimdSignalTester(unittest.TestCase):
     def test_sim_identity(self):
         m = Module()
-        PartitionedSignalTester(m,
+        SimdSignalTester(m,
                                 lambda inputs: inputs[0],
                                 lambda lane, inputs: inputs[0],
                                 (0, 8, 16, 24, 32)).run_sim(self)
 
     def test_formal_identity(self):
         m = Module()
-        PartitionedSignalTester(m,
+        SimdSignalTester(m,
                                 lambda inputs: inputs[0],
                                 lambda lane, inputs: inputs[0],
                                 (0, 8, 16, 24, 32)).run_formal(self)
@@ -201,7 +201,7 @@ class TestPartitionedSignalTester(unittest.TestCase):
     def test_sim_pass_through_input(self):
         for which_input in range(0, 2):
             m = Module()
-            PartitionedSignalTester(m,
+            SimdSignalTester(m,
                                     lambda inputs: inputs[which_input],
                                     lambda lane, inputs: inputs[which_input],
                                     (0, 8, 16, 24, 32),
@@ -210,7 +210,7 @@ class TestPartitionedSignalTester(unittest.TestCase):
     def test_formal_pass_through_input(self):
         for which_input in range(0, 2):
             m = Module()
-            PartitionedSignalTester(m,
+            SimdSignalTester(m,
                                     lambda inputs: inputs[which_input],
                                     lambda lane, inputs: inputs[which_input],
                                     (0, 8, 16, 24, 32),

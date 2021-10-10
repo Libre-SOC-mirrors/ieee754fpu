@@ -9,7 +9,7 @@ is fully open will be identical to Signal.  when partitions are closed,
 the class turns into a SIMD variant of Signal.  *this is dynamic*.
 
 the basic fundamental idea is: write code once, and if you want a SIMD
-version of it, use PartitionedSignal in place of Signal.  job done.
+version of it, use SimdSignal in place of Signal.  job done.
 this however requires the code to *not* be designed to use nmigen.If,
 nmigen.Case, or other constructs: only Mux and other logic.
 
@@ -35,16 +35,16 @@ from nmigen.hdl.ast import UserValue, Shape
 
 
 def getsig(op1):
-    if isinstance(op1, PartitionedSignal):
+    if isinstance(op1, SimdSignal):
         op1 = op1.sig
     return op1
 
 
 def applyop(op1, op2, op):
-    if isinstance(op1, PartitionedSignal):
-        result = PartitionedSignal.like(op1)
+    if isinstance(op1, SimdSignal):
+        result = SimdSignal.like(op1)
     else:
-        result = PartitionedSignal.like(op2)
+        result = SimdSignal.like(op2)
     result.m.d.comb += result.sig.eq(op(getsig(op1), getsig(op2)))
     return result
 
@@ -57,7 +57,7 @@ for name in ['add', 'eq', 'gt', 'ge', 'ls', 'xor', 'bool', 'all']:
 
 
 # Prototype https://bugs.libre-soc.org/show_bug.cgi?id=713#c53
-# this provides a "compatibility" layer with existing PartitionedSignal
+# this provides a "compatibility" layer with existing SimdSignal
 # behaviour.  the idea is that this interface defines which "combinations"
 # of partition selections are relevant, and as an added bonus it says
 # which partition lanes are completely irrelevant (padding, blank).
@@ -97,7 +97,7 @@ class ElWidthPartType: # TODO decide name
         return 0 # TODO
 
 
-class PartitionedSignal(UserValue):
+class SimdSignal(UserValue):
     # XXX ################################################### XXX
     # XXX Keep these functions in the same order as ast.Value XXX
     # XXX ################################################### XXX
@@ -121,9 +121,9 @@ class PartitionedSignal(UserValue):
 
     @staticmethod
     def like(other, *args, **kwargs):
-        """Builds a new PartitionedSignal with the same PartitionPoints and
+        """Builds a new SimdSignal with the same PartitionPoints and
         Signal properties as the other"""
-        result = PartitionedSignal(PartitionPoints(other.partpoints))
+        result = SimdSignal(PartitionPoints(other.partpoints))
         result.sig = Signal.like(other.sig, *args, **kwargs)
         result.m = other.m
         return result
@@ -142,15 +142,15 @@ class PartitionedSignal(UserValue):
     def __Cat__(self, *args, src_loc_at=0):
         args = [self] + list(args)
         for sig in args:
-            assert isinstance(sig, PartitionedSignal), \
-                "All PartitionedSignal.__Cat__ arguments must be " \
-                "a PartitionedSignal. %s is not." % repr(sig)
+            assert isinstance(sig, SimdSignal), \
+                "All SimdSignal.__Cat__ arguments must be " \
+                "a SimdSignal. %s is not." % repr(sig)
         return PCat(self.m, args, self.ptype)
 
     def __Mux__(self, val1, val2):
         # print ("partsig mux", self, val1, val2)
         assert len(val1) == len(val2), \
-            "PartitionedSignal width sources must be the same " \
+            "SimdSignal width sources must be the same " \
             "val1 == %d, val2 == %d" % (len(val1), len(val2))
         return PMux(self.m, self.partpoints, self, val1, val2, self.ptype)
 
@@ -168,7 +168,7 @@ class PartitionedSignal(UserValue):
     # unary ops that do not require partitioning
 
     def __invert__(self):
-        result = PartitionedSignal.like(self)
+        result = SimdSignal.like(self)
         self.m.d.comb += result.sig.eq(~self.sig)
         return result
 
@@ -190,7 +190,7 @@ class PartitionedSignal(UserValue):
         comb += pa.a.eq(op1)
         comb += pa.b.eq(op2)
         comb += pa.carry_in.eq(carry)
-        result = PartitionedSignal.like(self)
+        result = SimdSignal.like(self)
         comb += result.sig.eq(pa.output)
         return result, pa.carry_out
 
@@ -203,7 +203,7 @@ class PartitionedSignal(UserValue):
         comb += pa.a.eq(op1)
         comb += pa.b.eq(~op2)
         comb += pa.carry_in.eq(carry)
-        result = PartitionedSignal.like(self)
+        result = SimdSignal.like(self)
         comb += result.sig.eq(pa.output)
         return result, pa.carry_out
 
@@ -262,8 +262,8 @@ class PartitionedSignal(UserValue):
     #def __check_shamt(self):
 
     # TODO: detect if the 2nd operand is a Const, a Signal or a
-    # PartitionedSignal.  if it's a Const or a Signal, a global shift
-    # can occur.  if it's a PartitionedSignal, that's much more interesting.
+    # SimdSignal.  if it's a Const or a Signal, a global shift
+    # can occur.  if it's a SimdSignal, that's much more interesting.
     def ls_op(self, op1, op2, carry, shr_flag=0):
         op1 = getsig(op1)
         if isinstance(op2, Const) or isinstance(op2, Signal):
@@ -274,7 +274,7 @@ class PartitionedSignal(UserValue):
             op2 = getsig(op2)
             pa = PartitionedDynamicShift(len(op1), self.partpoints)
         # else:
-        #   TODO: case where the *shifter* is a PartitionedSignal but
+        #   TODO: case where the *shifter* is a SimdSignal but
         #   the thing *being* Shifted is a scalar (Signal, expression)
         #   https://bugs.libre-soc.org/show_bug.cgi?id=718
         setattr(self.m.submodules, self.get_modname('ls'), pa)
@@ -339,11 +339,11 @@ class PartitionedSignal(UserValue):
         setattr(self.m.submodules, self.get_modname(opname), pa)
         comb = self.m.d.comb
         comb += pa.opcode.eq(optype)  # set opcode
-        if isinstance(op1, PartitionedSignal):
+        if isinstance(op1, SimdSignal):
             comb += pa.a.eq(op1.sig)
         else:
             comb += pa.a.eq(op1)
-        if isinstance(op2, PartitionedSignal):
+        if isinstance(op2, SimdSignal):
             comb += pa.b.eq(op2.sig)
         else:
             comb += pa.b.eq(op2)
@@ -389,7 +389,7 @@ class PartitionedSignal(UserValue):
 
     def __new_sign(self, signed):
         shape = Shape(len(self), signed=signed)
-        result = PartitionedSignal.like(self, shape=shape)
+        result = SimdSignal.like(self, shape=shape)
         self.m.d.comb += result.sig.eq(self.sig)
         return result
 

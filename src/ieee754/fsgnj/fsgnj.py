@@ -40,7 +40,7 @@ class FSGNJPipeMod(PipeModBase):
         b = self.i.b
 
         # Calculate the sign bit, with a chain of muxes.  has to be done
-        # this way due to (planned) use of PartitionedSignal.  decreases
+        # this way due to (planned) use of SimdSignal.  decreases
         # readability slightly, but hey.
 
         # Handle opcodes 0b00 and 0b01, copying or inverting the sign bit of B
