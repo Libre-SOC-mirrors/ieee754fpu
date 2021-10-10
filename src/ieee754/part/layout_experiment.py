@@ -13,6 +13,9 @@ from nmigen.back.pysim import Simulator, Delay, Settle
 from nmigen.cli import rtlil
 
 from collections.abc import Mapping
+from functools import reduce
+import operator
+from collections import defaultdict
 from pprint import pprint
 
 from ieee754.part_mul_add.partpoints import PartitionPoints
@@ -30,14 +33,21 @@ def layout(elwid, signed, part_counts, lane_shapes):
     part_count = max(part_counts.values())
     # calculate the minumum width required
     width = part_wid * part_count
-    # create the breakpoints dictionary
-    points = {}
+    # create the breakpoints dictionary.
+    # do multi-stage version https://bugs.libre-soc.org/show_bug.cgi?id=713#c34
+    # https://stackoverflow.com/questions/26367812/
+    dpoints = defaultdict(list) # if empty key, create a (empty) list
     for i, c in part_counts.items():
         def add_p(p):
-            points[p] = points.get(p, False) | (elwid == i)
+            dpoints[p].append(i) # auto-creates list if key non-existent
         for start in range(0, part_count, c):
             add_p(start * part_wid) # start of lane
             add_p(start * part_wid + lane_shapes[i]) # start of padding
+    # second stage, add (map to) the elwidth==i expressions
+    points = {}
+    for p in dpoints.keys():
+        points[p] = map(lambda i: elwid == i, dpoints[p])
+        points[p] = reduce(operator.or_, points[p])
     # do not need the breakpoints at the very start or the very end
     points.pop(0, None)
     points.pop(width, None)
