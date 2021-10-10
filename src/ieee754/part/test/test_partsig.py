@@ -455,26 +455,26 @@ class TestRepl(unittest.TestCase):
         def async_process():
 
             def test_replop(msg_prefix):
-                # define lengths of a/b test input
-                alen, blen = 16, 32
-                # pairs of test values a, b
-                for a, b in [(0x0000, 0x00000000),
-                             (0xDCBA, 0x12345678),
-                             (0xABCD, 0x01234567),
-                             (0xFFFF, 0x0000),
-                             (0x0000, 0x0000),
-                             (0x1F1F, 0xF1F1F1F1),
-                             (0x0000, 0xFFFFFFFF)]:
+                # define length of a test input
+                alen = 16
+                # test values a
+                for a in [0x0000,
+                             0xDCBA,
+                             0x1234,
+                             0xABCD,
+                             0xFFFF,
+                             0x0000,
+                             0x1F1F,
+                             0xF1F1,
+                             ]:
 
-                    # convert a and b to partitions
-                    apart, bpart = [], []
-                    ajump, bjump = alen // 4, blen // 4
+                    # convert a to partitions
+                    apart = []
+                    ajump = alen // 4
                     for i in range(4):
                         apart.append((a >> (ajump*i) & ((1<<ajump)-1)))
-                        bpart.append((b >> (bjump*i) & ((1<<bjump)-1)))
 
-                    print ("apart bpart", hex(a), hex(b),
-                            list(map(hex, apart)), list(map(hex, bpart)))
+                    print ("apart", hex(a), list(map(hex, apart)))
 
                     yield module.a.lower().eq(a)
                     yield Delay(0.1e-6)
@@ -485,34 +485,24 @@ class TestRepl(unittest.TestCase):
                     mval = yield part_mask
                     runlengths = get_runlengths(mval, 3)
                     j = 0
-                    ai = 0
-                    bi = 0
+                    ai = [0, 0]
                     for i in runlengths:
-                        # a first
-                        for _ in range(i):
-                            print ("runlength", i,
-                                   "ai", ai,
-                                   "apart", hex(apart[ai]),
-                                   "j", j)
-                            y |= apart[ai] << j
-                            print ("    y", hex(y))
-                            j += ajump
-                            ai += 1
-                        # now b
-                        for _ in range(i):
-                            print ("runlength", i,
-                                   "bi", bi,
-                                   "bpart", hex(bpart[bi]),
-                                   "j", j)
-                            y |= bpart[bi] << j
-                            print ("    y", hex(y))
-                            j += bjump
-                            bi += 1
+                        # a twice because the test is Repl(a, 2)
+                        for aidx in range(2):
+                            for _ in range(i):
+                                print ("runlength", i,
+                                       "ai", ai,
+                                       "apart", hex(apart[ai[aidx]]),
+                                       "j", j)
+                                y |= apart[ai[aidx]] << j
+                                print ("    y", hex(y))
+                                j += ajump
+                                ai[aidx] += 1
 
                     # check the result
                     outval = (yield module.repl_out)
                     msg = f"{msg_prefix}: repl " + \
-                        f"0x{mval:X} 0x{a:X} : 0x{b:X}" + \
+                        f"0x{mval:X} 0x{a:X}" + \
                         f" => 0x{y:X} != 0x{outval:X}"
                     self.assertEqual(y, outval, msg)
 
