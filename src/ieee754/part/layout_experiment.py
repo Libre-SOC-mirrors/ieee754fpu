@@ -113,7 +113,7 @@ if __name__ == '__main__':
             # check the results against bitp static-expected partition points
             # https://bugs.libre-soc.org/show_bug.cgi?id=713#c47
             # https://stackoverflow.com/a/27165694
-            ival = int(''.join(map(str, map(int, ppt))), 2)
+            ival = int(''.join(map(str, ppt[::-1])), 2)
             assert ival == bitp[i]
 
     sim = Simulator(m)
@@ -142,7 +142,7 @@ if __name__ == '__main__':
             # check the results against bitp static-expected partition points
             # https://bugs.libre-soc.org/show_bug.cgi?id=713#c47
             # https://stackoverflow.com/a/27165694
-            ival = int(''.join(map(str, map(int, ppt))), 2)
+            ival = int(''.join(map(str, ppt[::-1])), 2)
             assert ival == bitp[i], "ival %s actual %s" % (bin(ival),
                                                 bin(bitp[i]))
 
