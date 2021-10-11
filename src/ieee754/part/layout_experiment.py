@@ -24,7 +24,8 @@ from pprint import pprint
 from ieee754.part_mul_add.partpoints import PartitionPoints
 
 
-# main fn
+# main fn, which started out here in the bugtracker:
+# https://bugs.libre-soc.org/show_bug.cgi?id=713#c20
 def layout(elwid, signed, part_counts, lane_shapes, fixed_width=None):
     # identify if the lane_shapes is a mapping (dict, etc.)
     # if not, then assume that it is an integer (width) that
