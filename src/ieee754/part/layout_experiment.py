@@ -80,7 +80,12 @@ def layout(elwid, signed, part_counts, lane_shapes, fixed_width=None):
             if i in elwidths:
                bitpos = plist.index(p)
                bitp[i] |= 1<< bitpos
-    return (PartitionPoints(points), bitp, width, lane_shapes,
+    # fourth stage: determine which partitions are 100% unused.
+    # these can then be "blanked out"
+    bmask = (1<<len(plist))-1
+    for p in bitp.values():
+        bmask &= ~p
+    return (PartitionPoints(points), bitp, bmask, width, lane_shapes,
         part_wid, part_count)
 
 
@@ -130,10 +135,11 @@ if __name__ == '__main__':
     # https://bugs.libre-soc.org/show_bug.cgi?id=713#c30
 
     elwid = Signal(2)
-    pp,bitp,b,c,d,e = layout(elwid, False, part_counts, widths_at_elwidth)
+    pp,bitp,bm,b,c,d,e = layout(elwid, False, part_counts, widths_at_elwidth)
     pprint ((pp,b,c,d,e))
     for k, v in bitp.items():
         print ("bitp elwidth=%d" % k, bin(v))
+    print ("bmask", bin(bm))
 
     m = Module()
     def process():
@@ -160,11 +166,12 @@ if __name__ == '__main__':
     # https://bugs.libre-soc.org/show_bug.cgi?id=713#c22
 
     elwid = Signal(2)
-    pp,bitp,b,c,d,e = layout(elwid, False, part_counts, widths_at_elwidth,
+    pp,bitp,bm,b,c,d,e = layout(elwid, False, part_counts, widths_at_elwidth,
                              fixed_width=64)
     pprint ((pp,b,c,d,e))
     for k, v in bitp.items():
         print ("bitp elwidth=%d" % k, bin(v))
+    print ("bmask", bin(bm))
 
     m = Module()
     def process():
