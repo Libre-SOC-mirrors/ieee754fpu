@@ -48,6 +48,7 @@ def applyop(op1, op2, op):
     result.m.d.comb += result.sig.eq(op(getsig(op1), getsig(op2)))
     return result
 
+
 global modnames
 modnames = {}
 # for sub-modules to be created on-demand. Mux is done slightly
