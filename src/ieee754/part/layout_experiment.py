@@ -86,10 +86,10 @@ def layout(elwid, signed, part_counts, lane_shapes, fixed_width=None):
 if __name__ == '__main__':
 
     # for each element-width (elwidth 0-3) the number of partitions is given
-    # at elwidth=0b00 we want QTY 1 partitions
-    # at elwidth=0b01 we want QTY 1 partitions
-    # at elwidth=0b10 we want QTY 2 partitions
-    # at elwidth=0b11 we want QTY 3 partitions
+    # elwidth=0b00 QTY 1 partitions:   |          ?          |
+    # elwidth=0b01 QTY 1 partitions:   |          ?          |
+    # elwidth=0b10 QTY 2 partitions:   |    ?     |     ?    |
+    # elwidth=0b11 QTY 4 partitions:   | ?  |  ?  |  ?  | ?  |
     # actual widths of Signals *within* those partitions is given separately
     part_counts = {
         0: 1,
@@ -99,16 +99,27 @@ if __name__ == '__main__':
     }
 
     # width=3 indicates "we want the same width (3) at all elwidths"
+    # elwidth=0b00 1x 5-bit     |                 ..3 |
+    # elwidth=0b01 1x 6-bit     |                 ..3 |
+    # elwidth=0b10 2x 12-bit    |      ..3 |      ..3 |
+    # elwidth=0b11 3x 24-bit    | ..3| ..3 | ..3 |..3 |
+    width_in_all_parts = 3
+
     for i in range(4):
-        pprint((i, layout(i, True, part_counts, 3)))
+        pprint((i, layout(i, True, part_counts, width_in_all_parts)))
 
     # specify that the length is to be *different* at each of the elwidths.
     # combined with part_counts we have:
-    # at elwidth=0b00 we want 1x 5-bit
-    # at elwidth=0b01 we want 1x 6-bit
-    # at elwidth=0b10 we want 2x 12-bit
-    # at elwidth=0b11 we want 3x 24-bit
-    widths_at_elwidth = {0: 5, 1: 6, 2: 12, 3: 24}
+    # elwidth=0b00 1x 5-bit     |               ....5 |
+    # elwidth=0b01 1x 6-bit     |              .....6 |
+    # elwidth=0b10 2x 12-bit    |   ....12 |  .....12 |
+    # elwidth=0b11 3x 24-bit    | 24 |  24 |  24 | 24 |
+    widths_at_elwidth = {
+        0: 5,
+        1: 6,
+        2: 12,
+        3: 24
+    }
 
     for i in range(4):
         pprint((i, layout(i, False, part_counts, widths_at_elwidth)))
