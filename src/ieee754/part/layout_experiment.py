@@ -6,6 +6,9 @@ Links:
 * https://libre-soc.org/3d_gpu/architecture/dynamic_simd/shape/
 * https://bugs.libre-soc.org/show_bug.cgi?id=713#c20
 * https://bugs.libre-soc.org/show_bug.cgi?id=713#c30
+* https://bugs.libre-soc.org/show_bug.cgi?id=713#c34
+* https://bugs.libre-soc.org/show_bug.cgi?id=713#c47
+* https://bugs.libre-soc.org/show_bug.cgi?id=713#c22
 """
 
 from nmigen import Signal, Module, Elaboratable, Mux, Cat, Shape, Repl
@@ -60,7 +63,8 @@ def layout(elwid, signed, part_counts, lane_shapes, fixed_width=None):
     plist.sort()
     print ("dpoints")
     pprint(dict(dpoints))
-    # second stage, add (map to) the elwidth==i expressions
+    # second stage, add (map to) the elwidth==i expressions.
+    # TODO: use nmutil.treereduce?
     points = {}
     for p in plist:
         points[p] = map(lambda i: elwid == i, dpoints[p])
@@ -78,7 +82,15 @@ def layout(elwid, signed, part_counts, lane_shapes, fixed_width=None):
     return (PartitionPoints(points), bitp, width, lane_shapes,
         part_wid, part_count)
 
+
 if __name__ == '__main__':
+
+    # for each element-width (elwidth 0-3) the number of partitions is given
+    # at elwidth=0b00 we want QTY 1 partitions
+    # at elwidth=0b01 we want QTY 1 partitions
+    # at elwidth=0b10 we want QTY 2 partitions
+    # at elwidth=0b11 we want QTY 3 partitions
+    # actual widths of Signals *within* those partitions is given separately
     part_counts = {
         0: 1,
         1: 1,
@@ -86,16 +98,27 @@ if __name__ == '__main__':
         3: 4,
     }
 
+    # width=3 indicates "we want the same width (3) at all elwidths"
     for i in range(4):
         pprint((i, layout(i, True, part_counts, 3)))
 
-    l = {0: 5, 1: 6, 2: 12, 3: 24}
-    for i in range(4):
-        pprint((i, layout(i, False, part_counts, l)))
+    # specify that the length is to be *different* at each of the elwidths.
+    # combined with part_counts we have:
+    # at elwidth=0b00 we want 1x 5-bit
+    # at elwidth=0b01 we want 1x 6-bit
+    # at elwidth=0b10 we want 2x 12-bit
+    # at elwidth=0b11 we want 3x 24-bit
+    widths_at_elwidth = {0: 5, 1: 6, 2: 12, 3: 24}
 
+    for i in range(4):
+        pprint((i, layout(i, False, part_counts, widths_at_elwidth)))
+
+    # this tests elwidth as an actual Signal. layout is allowed to
+    # determine arbitrarily the overall length
     # https://bugs.libre-soc.org/show_bug.cgi?id=713#c30
+
     elwid = Signal(2)
-    pp,bitp,b,c,d,e = layout(elwid, False, part_counts, l)
+    pp,bitp,b,c,d,e = layout(elwid, False, part_counts, widths_at_elwidth)
     pprint ((pp,b,c,d,e))
     for k, v in bitp.items():
         print ("bitp elwidth=%d" % k, bin(v))
@@ -120,10 +143,13 @@ if __name__ == '__main__':
     sim.add_process(process)
     sim.run()
 
-    # set the width fixed
+    # this tests elwidth as an actual Signal. layout is *not* allowed to
+    # determine arbitrarily the overall length, it is fixed to 64
     # https://bugs.libre-soc.org/show_bug.cgi?id=713#c22
+
     elwid = Signal(2)
-    pp,bitp,b,c,d,e = layout(elwid, False, part_counts, l, fixed_width=64)
+    pp,bitp,b,c,d,e = layout(elwid, False, part_counts, widths_at_elwidth,
+                             fixed_width=64)
     pprint ((pp,b,c,d,e))
     for k, v in bitp.items():
         print ("bitp elwidth=%d" % k, bin(v))
