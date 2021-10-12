@@ -9,6 +9,7 @@ Links:
 * https://bugs.libre-soc.org/show_bug.cgi?id=713#c34
 * https://bugs.libre-soc.org/show_bug.cgi?id=713#c47
 * https://bugs.libre-soc.org/show_bug.cgi?id=713#c22
+* https://bugs.libre-soc.org/show_bug.cgi?id=713#c67
 """
 
 from nmigen import Signal, Module, Elaboratable, Mux, Cat, Shape, Repl
@@ -26,17 +27,28 @@ from ieee754.part_mul_add.partpoints import PartitionPoints
 
 # main fn, which started out here in the bugtracker:
 # https://bugs.libre-soc.org/show_bug.cgi?id=713#c20
-def layout(elwid, signed, part_counts, lane_shapes, fixed_width=None):
+def layout(elwid, signed, part_counts, lane_shapes=None, fixed_width=None):
+    # when there are no lane_shapes specified, this indicates a
+    # desire to use the maximum available space based on the fixed width
+    # https://bugs.libre-soc.org/show_bug.cgi?id=713#c67
+    if lane_shapes is None:
+        assert fixed_width is not None, \
+                "both fixed_width and lane_shapes cannot be None"
+        lane_shapes = {i: fixed_width // part_counts[i] for i in part_counts}
+        print ("lane_shapes", fixed_width, lane_shapes)
     # identify if the lane_shapes is a mapping (dict, etc.)
     # if not, then assume that it is an integer (width) that
     # needs to be requested across all partitions
     if not isinstance(lane_shapes, Mapping):
         lane_shapes = {i: lane_shapes for i in part_counts}
     # compute a set of partition widths
-    cpart_wid = -min(-lane_shapes[i] // c for i, c in part_counts.items())
+    cpart_wid = [-lane_shapes[i] // c for i, c in part_counts.items()]
+    print ("cpart_wid", cpart_wid, "part_counts", part_counts)
+    cpart_wid = -min(cpart_wid)
     part_count = max(part_counts.values())
     # calculate the minumum width required
     width = cpart_wid * part_count
+    print ("width", width, cpart_wid, part_count)
     if fixed_width is not None: # override the width and part_wid
         assert width < fixed_width, "not enough space to fit partitions"
         part_wid = fixed_width // part_count
@@ -113,6 +125,16 @@ if __name__ == '__main__':
 
     for i in range(4):
         pprint((i, layout(i, True, part_counts, width_in_all_parts)))
+
+    # fixed_width=32 and no lane_widths says "allocate maximum"
+    # elwidth=0b00 1x 32-bit    | .................32 |
+    # elwidth=0b01 1x 32-bit    | .................32 |
+    # elwidth=0b10 2x 12-bit    | ......16 | ......16 |
+    # elwidth=0b11 3x 24-bit    | ..8| ..8 | ..8 |..8 |
+
+    #print ("maximum allocation from fixed_width=32")
+    #for i in range(4):
+    #    pprint((i, layout(i, True, part_counts, fixed_width=32)))
 
     # specify that the length is to be *different* at each of the elwidths.
     # combined with part_counts we have:
