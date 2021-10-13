@@ -207,7 +207,7 @@ if __name__ == '__main__':
     width_in_all_parts = 3
 
     for i in range(4):
-        pprint((i, layout(i, True, vec_el_counts, width_in_all_parts)))
+        pprint((i, layout(i, vec_el_counts, width_in_all_parts)))
 
     # specify that the Vector Element lengths are to be *different* at
     # each of the elwidths.
@@ -229,7 +229,7 @@ if __name__ == '__main__':
     print ("5,6,6,6 elements", widths_at_elwidth)
     for i in range(4):
         pp, bitp, bm, b, c, d, e = \
-                    layout(i, False, vec_el_counts, widths_at_elwidth)
+                    layout(i, vec_el_counts, widths_at_elwidth)
         pprint((i, (pp, bitp, bm, b, c, d, e)))
     # now check that the expected partition points occur
     print("5,6,6,6 ppt keys", pp.keys())
@@ -242,7 +242,7 @@ if __name__ == '__main__':
 
     elwid = Signal(2)
     pp, bitp, bm, b, c, d, e = layout(
-        elwid, False, vec_el_counts, widths_at_elwidth)
+        elwid, vec_el_counts, widths_at_elwidth)
     pprint((pp, b, c, d, e))
     for k, v in bitp.items():
         print("bitp elwidth=%d" % k, bin(v))
@@ -274,7 +274,7 @@ if __name__ == '__main__':
     # https://bugs.libre-soc.org/show_bug.cgi?id=713#c22
 
     elwid = Signal(2)
-    pp, bitp, bm, b, c, d, e = layout(elwid, False, vec_el_counts,
+    pp, bitp, bm, b, c, d, e = layout(elwid, vec_el_counts,
                                       widths_at_elwidth,
                                       fixed_width=64)
     pprint((pp, b, c, d, e))
@@ -318,5 +318,5 @@ if __name__ == '__main__':
     # shows that things break and doesn't stop the other tests.
     print ("maximum allocation from fixed_width=32")
     for i in range(4):
-        pprint((i, layout(i, True, vec_el_counts, fixed_width=32)))
+        pprint((i, layout(i, vec_el_counts, fixed_width=32)))
 
