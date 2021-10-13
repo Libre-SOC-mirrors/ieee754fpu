@@ -40,18 +40,19 @@ def layout(elwid, signed, part_counts, lane_shapes=None, fixed_width=None):
         Example `ElWid` definition for integers:
 
         class ElWid(Enum):
-            I8 = ...
-            I16 = ...
-            I32 = ...
-            I64 = ...
+            I64 = ...       # SVP64 value 0b00
+            I32 = ...       # SVP64 value 0b01
+            I16 = ...       # SVP64 value 0b10
+            I8 = ...        # SVP64 value 0b11
 
         Example `ElWid` definition for floats:
 
         class ElWid(Enum):
-            F16 = ...
-            BF16 = ...
-            F32 = ...
-            F64 = ...
+            F64 = ...    # SVP64 value 0b00
+            F32 = ...    # SVP64 value 0b01
+            F16 = ...    # SVP64 value 0b10
+            BF16 = ...   # SVP64 value 0b11
+
     * part: A piece of a SIMD vector, every SIMD vector is made of a
         non-negative integer of parts. Elements are made of a power-of-two
         number of parts. A part is a fixed number of bits wide for each
@@ -158,7 +159,7 @@ def layout(elwid, signed, part_counts, lane_shapes=None, fixed_width=None):
 
 if __name__ == '__main__':
 
-    # for each element-width (elwidth 0-3) the number of partitions is given
+    # for each element-width (elwidth 0-3) the number of Vector Elements is:
     # elwidth=0b00 QTY 1 partitions:   |          ?          |
     # elwidth=0b01 QTY 1 partitions:   |          ?          |
     # elwidth=0b10 QTY 2 partitions:   |    ?     |     ?    |
@@ -171,39 +172,49 @@ if __name__ == '__main__':
         3: 4,
     }
 
-    # width=3 indicates "we want the same width (3) at all elwidths"
-    # elwidth=0b00 1x 5-bit     |                 ..3 |
-    # elwidth=0b01 1x 6-bit     |                 ..3 |
-    # elwidth=0b10 2x 12-bit    |      ..3 |      ..3 |
+    # width=3 indicates "same width Vector Elements (3) at all elwidths"
+    # elwidth=0b00 1x 5-bit     |  unused xx      ..3 |
+    # elwidth=0b01 1x 6-bit     |  unused xx      ..3 |
+    # elwidth=0b10 2x 12-bit    | xxx  ..3 | xxx  ..3 |
     # elwidth=0b11 3x 24-bit    | ..3| ..3 | ..3 |..3 |
+    # expected partitions      (^)   |     |     |   (^)
+    # to be at these points:   (|)   |     |     |    |
     width_in_all_parts = 3
 
     for i in range(4):
         pprint((i, layout(i, True, part_counts, width_in_all_parts)))
 
     # fixed_width=32 and no lane_widths says "allocate maximum"
+    # i.e. Vector Element Widths are auto-allocated
     # elwidth=0b00 1x 32-bit    | .................32 |
     # elwidth=0b01 1x 32-bit    | .................32 |
     # elwidth=0b10 2x 12-bit    | ......16 | ......16 |
     # elwidth=0b11 3x 24-bit    | ..8| ..8 | ..8 |..8 |
+    # expected partitions      (^)   |     |     |   (^)
+    # to be at these points:   (|)   |     |     |    |
 
+    # TODO, fix this so that it is correct
     #print ("maximum allocation from fixed_width=32")
     # for i in range(4):
     #    pprint((i, layout(i, True, part_counts, fixed_width=32)))
 
-    # specify that the length is to be *different* at each of the elwidths.
+    # specify that the Vector Element lengths are to be *different* at
+    # each of the elwidths.
     # combined with part_counts we have:
-    # elwidth=0b00 1x 5-bit     |               ....5 |
-    # elwidth=0b01 1x 6-bit     |              .....6 |
-    # elwidth=0b10 2x 12-bit    |   ....12 |  .....12 |
-    # elwidth=0b11 3x 24-bit    | 24 |  24 |  24 | 24 |
+    # elwidth=0b00 1x 5-bit     | <--  unused               -->....5 |
+    # elwidth=0b01 1x 6-bit     | <--  unused              -->.....6 |
+    # elwidth=0b10 2x 12-bit    | unused   .....6 | unused    .....6 |
+    # elwidth=0b11 3x 24-bit    | .....6 | .....6 |  .....6 | .....6 |
+    # expected partitions      (^)       ^        ^         ^^      (^)
+    # to be at these points:   (|)       |        |         ||      (|)
     widths_at_elwidth = {
         0: 5,
         1: 6,
-        2: 12,
-        3: 24
+        2: 6,
+        3: 6
     }
 
+    print ("5,6,6,6 elements", widths_at_elwidth)
     for i in range(4):
         pprint((i, layout(i, False, part_counts, widths_at_elwidth)))
 
@@ -245,7 +256,8 @@ if __name__ == '__main__':
     # https://bugs.libre-soc.org/show_bug.cgi?id=713#c22
 
     elwid = Signal(2)
-    pp, bitp, bm, b, c, d, e = layout(elwid, False, part_counts, widths_at_elwidth,
+    pp, bitp, bm, b, c, d, e = layout(elwid, False, part_counts,
+                                      widths_at_elwidth,
                                       fixed_width=64)
     pprint((pp, b, c, d, e))
     for k, v in bitp.items():
