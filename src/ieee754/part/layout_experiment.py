@@ -122,17 +122,18 @@ def layout(elwid, signed, vec_el_counts, lane_shapes=None, fixed_width=None):
             "calculated width not aligned multiples"
         width = fixed_width
         print("part_wid", part_wid, "count", part_count)
-    else:
-        # go with computed width
-        part_wid = cpart_wid
     # create the breakpoints dictionary.
     # do multi-stage version https://bugs.libre-soc.org/show_bug.cgi?id=713#c34
     # https://stackoverflow.com/questions/26367812/
     dpoints = defaultdict(list)  # if empty key, create a (empty) list
     for i, c in vec_el_counts.items():
+        # calculate part_wid based on overall width divided by number
+        # of elements.
+        part_wid = width // c
         def add_p(p):
             dpoints[p].append(i)  # auto-creates list if key non-existent
-        for start in range(0, part_count, c):
+        # for each elwidth, create the required number of vector elements
+        for start in range(c):
             add_p(start * part_wid)  # start of lane
             add_p(start * part_wid + lane_shapes[i])  # start of padding
     # do not need the breakpoints at the very start or the very end
