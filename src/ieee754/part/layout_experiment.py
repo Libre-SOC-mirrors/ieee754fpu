@@ -212,13 +212,13 @@ if __name__ == '__main__':
     # specify that the Vector Element lengths are to be *different* at
     # each of the elwidths.
     # combined with vec_el_counts we have:
-    # elwidth=0b00 1x 5-bit     | <--  unused               -->....5 |
-    # elwidth=0b01 1x 6-bit     | <--  unused              -->.....6 |
-    # elwidth=0b10 2x 12-bit    | unused   .....6 | unused    .....6 |
-    # elwidth=0b11 3x 24-bit    | .....6 | .....6 |  .....6 | .....6 |
-    # expected partitions      (^)       ^        ^         ^^      (^)
-    # to be at these points:   (|)       |        |         ||      (|)
-    #                          (24)     18       12         65      (0)
+    # elwidth=0b00 1x 5-bit     |<----unused----------->....5|
+    # elwidth=0b01 1x 6-bit     |<----unused---------->.....6|
+    # elwidth=0b10 2x 12-bit    |unused>.....6|unused->.....6|
+    # elwidth=0b11 3x 24-bit    |.....6|.....6| .....6|.....6|
+    # expected partitions      (^)     ^      ^       ^^    (^)
+    # to be at these points:   (|)     |      |       ||    (|)
+    #                          (24)   18     12       65    (0)
     widths_at_elwidth = {
         0: 5,
         1: 6,
