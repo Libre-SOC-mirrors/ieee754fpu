@@ -28,6 +28,61 @@ from ieee754.part_mul_add.partpoints import PartitionPoints
 # main fn, which started out here in the bugtracker:
 # https://bugs.libre-soc.org/show_bug.cgi?id=713#c20
 def layout(elwid, signed, part_counts, lane_shapes=None, fixed_width=None):
+    """calculate a SIMD layout.
+
+    Glossary:
+    * element: a single scalar value that is an element of a SIMD vector.
+        it has a width in bits, and a signedness. Every element is made of 1 or
+        more parts.
+    * ElWid: the element-width (really the element type) of an instruction.
+        Either an integer or a FP type. Integer `ElWid`s are sign-agnostic.
+        In Python, `ElWid` is either an enum type or is `int`.
+        Example `ElWid` definition for integers:
+
+        class ElWid(Enum):
+            I8 = ...
+            I16 = ...
+            I32 = ...
+            I64 = ...
+
+        Example `ElWid` definition for floats:
+
+        class ElWid(Enum):
+            F16 = ...
+            BF16 = ...
+            F32 = ...
+            F64 = ...
+    * part: A piece of a SIMD vector, every SIMD vector is made of a
+        non-negative integer of parts. Elements are made of a power-of-two
+        number of parts. A part is a fixed number of bits wide for each
+        different SIMD layout, it doesn't vary when `elwid` changes. A part
+        can have a bit width of any non-negative integer, it is not restricted
+        to power-of-two. SIMD vectors should have as few parts as necessary,
+        since some circuits have size proportional to the number of parts.
+
+
+    * elwid: ElWid or nmigen Value with ElWid as the shape
+        the current element-width
+    * signed: bool
+        the signedness of all elements in a SIMD layout
+    * part_counts: dict[ElWid, int]
+        a map from `ElWid` values `k` to the number of parts in an element
+        when `elwid == k`. Values should be minimized, since higher values
+        often create bigger circuits.
+
+        Example:
+        # here, an I8 element is 1 part wide
+        part_counts = {ElWid.I8: 1, ElWid.I16: 2, ElWid.I32: 4, ElWid.I64: 8}
+
+        Another Example:
+        # here, an F16 element is 1 part wide
+        part_counts = {ElWid.F16: 1, ElWid.BF16: 1, ElWid.F32: 2, ElWid.F64: 4}
+    * lane_shapes: int or Mapping[ElWid, int] (optional)
+        the bit-width of all elements in a SIMD layout.
+    * fixed_width: int (optional)
+        the total width of a SIMD vector. One of lane_shapes and fixed_width
+        must be provided.
+    """
     # when there are no lane_shapes specified, this indicates a
     # desire to use the maximum available space based on the fixed width
     # https://bugs.libre-soc.org/show_bug.cgi?id=713#c67
