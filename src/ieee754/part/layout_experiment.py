@@ -137,7 +137,7 @@ def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
         assert part_wid * part_count == fixed_width, \
             "calculated width not aligned multiples"
         width = fixed_width
-        print("part_wid", part_wid, "count", part_count)
+        print("part_wid", part_wid, "count", part_count, "width", width)
 
     # create the breakpoints dictionary.
     # do multi-stage version https://bugs.libre-soc.org/show_bug.cgi?id=713#c34
@@ -365,7 +365,44 @@ if __name__ == '__main__':
         pp, bitp, bm, b, c, d = \
                     layout(i, vec_el_counts, widths_at_elwidth,
                            fixed_width=32)
-        pprint((i, (pp, bitp, bm, b, c, d)))
+        pprint((i, (pp, bitp, bin(bm), b, c, d)))
+    # now check that the expected partition points occur
+    print("11,8,5,8 pp keys", pp.keys())
+    #assert list(pp.keys()) == [5,6,12,18]
+
+    ######                                                           ######
+    ###### 2nd test, different from the above, elwid=0b10 ==> 11 bit ######
+    ######                                                           ######
+
+    # example "exponent"
+    vec_el_counts = {
+        0: 1,  # QTY 1x FP64
+        1: 2,  # QTY 2x FP32
+        2: 4,  # QTY 4x FP16
+        3: 4,  # QTY 4x BF16
+    }
+    widths_at_elwidth = {
+        0: 11, # FP64 ew=0b00
+        1: 11, # FP32 ew=0b01
+        2: 5,  # FP16 ew=0b10
+        3: 8   # BF16 ew=0b11
+    }
+
+    # expected results:
+    #
+    #        |31|  |  |24|     16|15  |  |   8|7     0 |
+    #        |31|28|26|24| |20|16|  12|  |10|8|5|4   0 |
+    #  32bit | x| x| x|  |      x|   x| x|10 ....    0 |
+    #  16bit | x| x|26    ... 16 |   x| x|10 ....    0 |
+    #  8bit  | x|28 .. 24|  20.16|   x|11 .. 8|x|4.. 0 |
+    #  unused  x                     x
+
+    print ("11,8,5,8 elements (FP64/32/16/BF exponents)", widths_at_elwidth)
+    for i in range(4):
+        pp, bitp, bm, b, c, d = \
+                    layout(i, vec_el_counts, widths_at_elwidth,
+                           fixed_width=32)
+        pprint((i, (pp, bitp, bin(bm), b, c, d)))
     # now check that the expected partition points occur
     print("11,8,5,8 pp keys", pp.keys())
     #assert list(pp.keys()) == [5,6,12,18]
