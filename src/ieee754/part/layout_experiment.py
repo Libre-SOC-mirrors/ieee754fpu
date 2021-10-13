@@ -73,7 +73,10 @@ def layout(elwid, signed, part_counts, lane_shapes=None, fixed_width=None):
 
         Example:
         # here, an I8 element is 1 part wide
-        part_counts = {ElWid.I8: 1, ElWid.I16: 2, ElWid.I32: 4, ElWid.I64: 8}
+        part_counts = {ElWid.I8: 1,
+                       ElWid.I16: 2,
+                       ElWid.I32: 4,
+                       ElWid.I64: 8}
 
         Another Example:
         # here, an F16 element is 1 part wide
