@@ -68,6 +68,7 @@ def layout(elwid, signed, vec_el_counts, lane_shapes=None, fixed_width=None):
 
     * elwid: ElWid or nmigen Value with ElWid as the shape
         the current element-width
+
     * signed: bool
         the signedness of all elements in a SIMD layout
     * vec_el_counts: dict[ElWid, int]
@@ -81,14 +82,15 @@ def layout(elwid, signed, vec_el_counts, lane_shapes=None, fixed_width=None):
                        ElWid.I64(==0b00): 1}  # 1 vector (aka scalar) element
 
         Another Example:
-        # here, there is one
-        vec_el_counts = {ElWid.BF16(==0b11): 4,
-                         ElWid.F16(==0b10): 4,
-                         ElWid.F32(==0b01): 2,
-                         ElWid.F64(==0b00): 1}
+        vec_el_counts = {ElWid.BF16(==0b11): 4, # 4 vector elements
+                         ElWid.F16(==0b10): 4,  # 4 vector elements
+                         ElWid.F32(==0b01): 2,  # 2 vector elements
+                         ElWid.F64(==0b00): 1}  # 1 (aka scalar) vector element
 
     * lane_shapes: int or Mapping[ElWid, int] (optional)
         the bit-width of all elements in a SIMD layout.
+        if not provided, the lane_shapes are computed from fixed_width
+        and vec_el_counts at each elwidth.
 
     * fixed_width: int (optional)
         the total width of a SIMD vector. One or both of lane_shapes or
@@ -103,11 +105,13 @@ def layout(elwid, signed, vec_el_counts, lane_shapes=None, fixed_width=None):
         lane_shapes = {i: fixed_width // vec_el_counts[i]
                        for i in vec_el_counts}
         print("lane_shapes", fixed_width, lane_shapes)
+
     # identify if the lane_shapes is a mapping (dict, etc.)
     # if not, then assume that it is an integer (width) that
     # needs to be requested across all partitions
     if not isinstance(lane_shapes, Mapping):
         lane_shapes = {i: lane_shapes for i in vec_el_counts}
+
     # compute a set of partition widths
     print("lane_shapes", lane_shapes, "vec_el_counts", vec_el_counts)
     cpart_wid = max(lane_shapes.values())
@@ -122,6 +126,7 @@ def layout(elwid, signed, vec_el_counts, lane_shapes=None, fixed_width=None):
             "calculated width not aligned multiples"
         width = fixed_width
         print("part_wid", part_wid, "count", part_count)
+
     # create the breakpoints dictionary.
     # do multi-stage version https://bugs.libre-soc.org/show_bug.cgi?id=713#c34
     # https://stackoverflow.com/questions/26367812/
@@ -136,6 +141,7 @@ def layout(elwid, signed, vec_el_counts, lane_shapes=None, fixed_width=None):
         for start in range(c):
             add_p(start * part_wid)  # start of lane
             add_p(start * part_wid + lane_shapes[i])  # start of padding
+
     # do not need the breakpoints at the very start or the very end
     dpoints.pop(0, None)
     dpoints.pop(width, None)
@@ -143,12 +149,14 @@ def layout(elwid, signed, vec_el_counts, lane_shapes=None, fixed_width=None):
     plist.sort()
     print("dpoints")
     pprint(dict(dpoints))
+
     # second stage, add (map to) the elwidth==i expressions.
     # TODO: use nmutil.treereduce?
     points = {}
     for p in plist:
         points[p] = map(lambda i: elwid == i, dpoints[p])
         points[p] = reduce(operator.or_, points[p])
+
     # third stage, create the binary values which *if* elwidth is set to i
     # *would* result in the mask at that elwidth being set to this value
     # these can easily be double-checked through Assertion
@@ -159,6 +167,7 @@ def layout(elwid, signed, vec_el_counts, lane_shapes=None, fixed_width=None):
             if i in elwidths:
                 bitpos = plist.index(p)
                 bitp[i] |= 1 << bitpos
+
     # fourth stage: determine which partitions are 100% unused.
     # these can then be "blanked out"
     bmask = (1 << len(plist))-1
