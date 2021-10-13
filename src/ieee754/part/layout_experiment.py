@@ -27,12 +27,19 @@ from ieee754.part_mul_add.partpoints import PartitionPoints
 
 # main fn, which started out here in the bugtracker:
 # https://bugs.libre-soc.org/show_bug.cgi?id=713#c20
-def layout(elwid, signed, vec_el_counts, lane_shapes=None, fixed_width=None):
+# note that signed is **NOT** part of the layout, and will NOT
+# be added (because it is not relevant or appropriate).
+# sign belongs in ast.Shape and is the only appropriate location.
+# there is absolutely nothing within this function that in any
+# way requires a sign.  it is *purely* performing numerical width
+# computations that have absolutely nothing to do with whether the
+# actual data is signed or unsigned.
+def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
     """calculate a SIMD layout.
 
     Glossary:
     * element: a single scalar value that is an element of a SIMD vector.
-        it has a width in bits, and a signedness. Every element is made of 1 or
+        it has a width in bits. Every element is made of 1 or
         more parts.
     * ElWid: the element-width (really the element type) of an instruction.
         Either an integer or a FP type. Integer `ElWid`s are sign-agnostic.
@@ -69,8 +76,6 @@ def layout(elwid, signed, vec_el_counts, lane_shapes=None, fixed_width=None):
     * elwid: ElWid or nmigen Value with ElWid as the shape
         the current element-width
 
-    * signed: bool
-        the signedness of all elements in a SIMD layout
     * vec_el_counts: dict[ElWid, int]
         a map from `ElWid` values `k` to the number of vector elements
         required within a partition when `elwid == k`.
