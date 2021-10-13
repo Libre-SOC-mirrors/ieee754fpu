@@ -186,7 +186,7 @@ def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
     for p in bitp.values():
         bmask &= ~p
     return (PartitionPoints(points), bitp, bmask, width, lane_shapes,
-            part_wid, part_count)
+            part_wid)
 
 
 if __name__ == '__main__':
@@ -235,9 +235,9 @@ if __name__ == '__main__':
 
     print ("5,6,6,6 elements", widths_at_elwidth)
     for i in range(4):
-        pp, bitp, bm, b, c, d, e = \
+        pp, bitp, bm, b, c, d = \
                     layout(i, vec_el_counts, widths_at_elwidth)
-        pprint((i, (pp, bitp, bm, b, c, d, e)))
+        pprint((i, (pp, bitp, bm, b, c, d)))
     # now check that the expected partition points occur
     print("5,6,6,6 ppt keys", pp.keys())
     assert list(pp.keys()) == [5,6,12,18]
@@ -248,9 +248,9 @@ if __name__ == '__main__':
     # https://bugs.libre-soc.org/show_bug.cgi?id=713#c30
 
     elwid = Signal(2)
-    pp, bitp, bm, b, c, d, e = layout(
+    pp, bitp, bm, b, c, d = layout(
         elwid, vec_el_counts, widths_at_elwidth)
-    pprint((pp, b, c, d, e))
+    pprint((pp, b, c, d))
     for k, v in bitp.items():
         print("bitp elwidth=%d" % k, bin(v))
     print("bmask", bin(bm))
@@ -265,7 +265,7 @@ if __name__ == '__main__':
             for pval in list(pp.values()):
                 val = yield pval  # get nmigen to evaluate pp
                 ppt.append(val)
-            pprint((i, (ppt, b, c, d, e)))
+            pprint((i, (ppt, b, c, d)))
             # check the results against bitp static-expected partition points
             # https://bugs.libre-soc.org/show_bug.cgi?id=713#c47
             # https://stackoverflow.com/a/27165694
@@ -281,10 +281,10 @@ if __name__ == '__main__':
     # https://bugs.libre-soc.org/show_bug.cgi?id=713#c22
 
     elwid = Signal(2)
-    pp, bitp, bm, b, c, d, e = layout(elwid, vec_el_counts,
-                                      widths_at_elwidth,
-                                      fixed_width=64)
-    pprint((pp, b, c, d, e))
+    pp, bitp, bm, b, c, d = layout(elwid, vec_el_counts,
+                                   widths_at_elwidth,
+                                   fixed_width=64)
+    pprint((pp, b, c, d))
     for k, v in bitp.items():
         print("bitp elwidth=%d" % k, bin(v))
     print("bmask", bin(bm))
@@ -300,7 +300,7 @@ if __name__ == '__main__':
                 val = yield pval  # get nmigen to evaluate pp
                 ppt.append(val)
             print("test elwidth=%d" % i)
-            pprint((i, (ppt, b, c, d, e)))
+            pprint((i, (ppt, b, c, d)))
             # check the results against bitp static-expected partition points
             # https://bugs.libre-soc.org/show_bug.cgi?id=713#c47
             # https://stackoverflow.com/a/27165694
