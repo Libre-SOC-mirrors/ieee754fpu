@@ -195,20 +195,6 @@ if __name__ == '__main__':
     for i in range(4):
         pprint((i, layout(i, True, vec_el_counts, width_in_all_parts)))
 
-    # fixed_width=32 and no lane_widths says "allocate maximum"
-    # i.e. Vector Element Widths are auto-allocated
-    # elwidth=0b00 1x 32-bit    | .................32 |
-    # elwidth=0b01 1x 32-bit    | .................32 |
-    # elwidth=0b10 2x 12-bit    | ......16 | ......16 |
-    # elwidth=0b11 3x 24-bit    | ..8| ..8 | ..8 |..8 |
-    # expected partitions      (^)   |     |     |   (^)
-    # to be at these points:   (|)   |     |     |    |
-
-    # TODO, fix this so that it is correct
-    #print ("maximum allocation from fixed_width=32")
-    # for i in range(4):
-    #    pprint((i, layout(i, True, vec_el_counts, fixed_width=32)))
-
     # specify that the Vector Element lengths are to be *different* at
     # each of the elwidths.
     # combined with vec_el_counts we have:
@@ -304,3 +290,19 @@ if __name__ == '__main__':
     sim = Simulator(m)
     sim.add_process(process)
     sim.run()
+
+    # fixed_width=32 and no lane_widths says "allocate maximum"
+    # i.e. Vector Element Widths are auto-allocated
+    # elwidth=0b00 1x 32-bit    | .................32 |
+    # elwidth=0b01 1x 32-bit    | .................32 |
+    # elwidth=0b10 2x 12-bit    | ......16 | ......16 |
+    # elwidth=0b11 3x 24-bit    | ..8| ..8 | ..8 |..8 |
+    # expected partitions      (^)   |     |     |   (^)
+    # to be at these points:   (|)   |     |     |    |
+
+    # TODO, fix this so that it is correct.  put it at the end so it
+    # shows that things break and doesn't stop the other tests.
+    print ("maximum allocation from fixed_width=32")
+    for i in range(4):
+        pprint((i, layout(i, True, vec_el_counts, fixed_width=32)))
+
