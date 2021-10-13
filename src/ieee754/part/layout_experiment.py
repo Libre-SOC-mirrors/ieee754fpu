@@ -224,13 +224,13 @@ if __name__ == '__main__':
     # specify that the Vector Element lengths are to be *different* at
     # each of the elwidths.
     # combined with vec_el_counts we have:
-    # elwidth=0b00 1x 5-bit     |<----unused----------->....5|
-    # elwidth=0b01 1x 6-bit     |<----unused---------->.....6|
-    # elwidth=0b10 2x 12-bit    |unused>.....6|unused->.....6|
-    # elwidth=0b11 3x 24-bit    |.....6|.....6| .....6|.....6|
-    # expected partitions      (^)     ^      ^       ^^    (^)
-    # to be at these points:   (|)     |      |       ||    (|)
-    #                          (24)   18     12       65    (0)
+    # elwidth=0b00 1x 5-bit    |<----unused---------->....5|
+    # elwidth=0b01 1x 6-bit    |<----unused--------->.....6|
+    # elwidth=0b10 2x 6-bit    |unused>.....6|unused>.....6|
+    # elwidth=0b11 4x 6-bit    |.....6|.....6|.....6|.....6|
+    # expected partitions     (^)     ^      ^      ^^    (^)
+    # to be at these points:  (|)     |      |      ||    (|)
+    #                         (24)   18     12      65    (0)
     widths_at_elwidth = {
         0: 5,
         1: 6,
@@ -246,6 +246,31 @@ if __name__ == '__main__':
     # now check that the expected partition points occur
     print("5,6,6,6 ppt keys", pp.keys())
     assert list(pp.keys()) == [5,6,12,18]
+
+    # this example was probably what the 5,6,6,6 one was supposed to be.
+    # combined with vec_el_counts {0:1, 1:1, 2:2, 3:4} we have:
+    # elwidth=0b00 1x 24-bit    |.........................24|
+    # elwidth=0b01 1x 12-bit    |<--unused--->|...........12|
+    # elwidth=0b10 2x 5 -bit    |unused>|....5|unused>|....5|
+    # elwidth=0b11 4x 6 -bit    |.....6|.....6|.....6|.....6|
+    # expected partitions      (^)     ^^     ^       ^^    (^)
+    # to be at these points:   (|)     ||     |       ||    (|)
+    #                          (24)   1817   12       65    (0)
+    widths_at_elwidth = {
+        0: 24,  # QTY 1x 24
+        1: 12,  # QTY 1x 12
+        2: 5,   # QTY 2x 5
+        3: 6    # QTY 4x 6
+    }
+
+    print ("24,12,5,6 elements", widths_at_elwidth)
+    for i in range(4):
+        pp, bitp, bm, b, c, d = \
+                    layout(i, vec_el_counts, widths_at_elwidth)
+        pprint((i, (pp, bitp, bm, b, c, d)))
+    # now check that the expected partition points occur
+    print("24,12,5,6 ppt keys", pp.keys())
+    assert list(pp.keys()) == [5,6,12,17,18]
 
 
     # this tests elwidth as an actual Signal. layout is allowed to
