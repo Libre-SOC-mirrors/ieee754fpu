@@ -218,6 +218,7 @@ if __name__ == '__main__':
     # elwidth=0b11 3x 24-bit    | .....6 | .....6 |  .....6 | .....6 |
     # expected partitions      (^)       ^        ^         ^^      (^)
     # to be at these points:   (|)       |        |         ||      (|)
+    #                          (24)     18       12         65      (0)
     widths_at_elwidth = {
         0: 5,
         1: 6,
@@ -227,7 +228,13 @@ if __name__ == '__main__':
 
     print ("5,6,6,6 elements", widths_at_elwidth)
     for i in range(4):
-        pprint((i, layout(i, False, vec_el_counts, widths_at_elwidth)))
+        pp, bitp, bm, b, c, d, e = \
+                    layout(i, False, vec_el_counts, widths_at_elwidth)
+        pprint((i, (pp, bitp, bm, b, c, d, e)))
+    # now check that the expected partition points occur
+    print("5,6,6,6 ppt keys", pp.keys())
+    assert list(pp.keys()) == [5,6,12,18]
+
 
     # this tests elwidth as an actual Signal. layout is allowed to
     # determine arbitrarily the overall length
