@@ -119,13 +119,20 @@ def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
 
     # compute a set of partition widths
     print("lane_shapes", lane_shapes, "vec_el_counts", vec_el_counts)
-    cpart_wid = max(lane_shapes.values())
+    cpart_wid = 0
+    width = 0
+    for i, lwid in lane_shapes.items():
+        required_width = lwid * vec_el_counts[i]
+        print("     required width", cpart_wid, i, lwid, required_width)
+        if required_width > width:
+            cpart_wid = lwid
+            width = required_width
+
+    # calculate the minumum width required if fixed_width specified
     part_count = max(vec_el_counts.values())
-    # calculate the minumum width required
-    width = cpart_wid * part_count
     print("width", width, cpart_wid, part_count)
     if fixed_width is not None:  # override the width and part_wid
-        assert width < fixed_width, "not enough space to fit partitions"
+        assert width <= fixed_width, "not enough space to fit partitions"
         part_wid = fixed_width // part_count
         assert part_wid * part_count == fixed_width, \
             "calculated width not aligned multiples"
