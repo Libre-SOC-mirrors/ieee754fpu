@@ -101,9 +101,8 @@ def layout(elwid, signed, part_counts, lane_shapes=None, fixed_width=None):
     if not isinstance(lane_shapes, Mapping):
         lane_shapes = {i: lane_shapes for i in part_counts}
     # compute a set of partition widths
-    cpart_wid = [-lane_shapes[i] for i, c in part_counts.items()]
-    print("cpart_wid", cpart_wid, "part_counts", part_counts)
-    cpart_wid = -min(cpart_wid)
+    print("lane_shapes", lane_shapes, "part_counts", part_counts)
+    cpart_wid = max(lane_shapes.values())
     part_count = max(part_counts.values())
     # calculate the minumum width required
     width = cpart_wid * part_count
