@@ -152,10 +152,13 @@ def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
     # do not need the breakpoints at the very start or the very end
     dpoints.pop(0, None)
     dpoints.pop(width, None)
+
+    # sort dpoints keys
+    dpoints = dict(sorted(dpoints.items(), key=lambda i: i[0]))
+
     plist = list(dpoints.keys())
-    plist.sort()
     print("dpoints")
-    pprint(dict(dpoints))
+    pprint(dpoints)
 
     # second stage, add (map to) the elwidth==i expressions.
     # TODO: use nmutil.treereduce?
