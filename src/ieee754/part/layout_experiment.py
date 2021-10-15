@@ -156,14 +156,13 @@ def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
     # sort dpoints keys
     dpoints = dict(sorted(dpoints.items(), key=lambda i: i[0]))
 
-    plist = list(dpoints.keys())
     print("dpoints")
     pprint(dpoints)
 
     # second stage, add (map to) the elwidth==i expressions.
     # TODO: use nmutil.treereduce?
     points = {}
-    for p in plist:
+    for p in dpoints.keys():
         points[p] = map(lambda i: elwid == i, dpoints[p])
         points[p] = reduce(operator.or_, points[p])
 
@@ -173,14 +172,13 @@ def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
     bitp = {}
     for i in vec_el_counts.keys():
         bitp[i] = 0
-        for p, elwidths in dpoints.items():
+        for bit_index, (p, elwidths) in enumerate(dpoints.items()):
             if i in elwidths:
-                bitpos = plist.index(p)
-                bitp[i] |= 1 << bitpos
+                bitp[i] |= 1 << bit_index
 
     # fourth stage: determine which partitions are 100% unused.
     # these can then be "blanked out"
-    bmask = (1 << len(plist))-1
+    bmask = (1 << len(dpoints)) - 1
     for p in bitp.values():
         bmask &= ~p
     return (PartitionPoints(points), bitp, bmask, width, lane_shapes,
