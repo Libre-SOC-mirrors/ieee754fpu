@@ -130,11 +130,15 @@ def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
     # do multi-stage version https://bugs.libre-soc.org/show_bug.cgi?id=713#c34
     # https://stackoverflow.com/questions/26367812/
     dpoints = defaultdict(list)  # if empty key, create a (empty) list
+    padding_masks = {}
+    always_padding_mask = (1 << width) - 1  # start with all bits padding
     for i, c in vec_el_counts.items():
         print("dpoints", i, "count", c)
         # calculate part_wid based on overall width divided by number
         # of elements.
         part_wid = width // c
+
+        padding_mask = (1 << width) - 1  # start with all bits padding
 
         def add_p(msg, start, p):
             print("    adding dpoint", msg, start, part_wid, i, c, p)
@@ -143,8 +147,12 @@ def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
         for start in range(c):
             start_bit = start * part_wid
             end_bit = start_bit + lane_shapes[i]
+            element_mask = (1 << end_bit) - (1 << start_bit)
+            padding_mask &= ~element_mask  # remove element from padding_mask
             add_p("start", start, start_bit)  # start of lane
             add_p("end  ", start, end_bit)  # end lane
+        padding_masks[i] = padding_mask
+        always_padding_mask &= padding_mask
 
     # deduplicate dpoints lists
     for k in dpoints.keys():
@@ -179,9 +187,17 @@ def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
 
     # fourth stage: determine which partitions are 100% unused.
     # these can then be "blanked out"
-    bmask = (1 << len(dpoints)) - 1
-    for p in bitp.values():
-        bmask &= ~p
+
+    # points are the partition separators, not partition indexes
+    partition_ends = [*dpoints.keys(), width]
+    bmask = 0
+    partition_start = 0
+    for bit_index, partition_end in enumerate(partition_ends):
+        pmask = (1 << partition_end) - (1 << partition_start)
+        always_padding = (always_padding_mask & pmask) == pmask
+        if always_padding:
+            bmask |= 1 << bit_index
+        partition_start = partition_end
     return (PartitionPoints(points), bitp, bmask, width, lane_shapes,
             part_wid)
 
@@ -238,6 +254,7 @@ if __name__ == '__main__':
     # now check that the expected partition points occur
     print("5,6,6,6 ppt keys", pp.keys())
     assert list(pp.keys()) == [5, 6, 12, 18]
+    assert bm == 0  # no unused partitions
 
     # this example was probably what the 5,6,6,6 one was supposed to be.
     # combined with vec_el_counts {0:1, 1:1, 2:2, 3:4} we have:
@@ -263,6 +280,8 @@ if __name__ == '__main__':
     # now check that the expected partition points occur
     print("24,12,5,6 ppt keys", pp.keys())
     assert list(pp.keys()) == [5, 6, 12, 17, 18]
+    print("bmask", bin(bm))
+    assert bm == 0  # no unused partitions
 
     # this tests elwidth as an actual Signal. layout is allowed to
     # determine arbitrarily the overall length
@@ -275,6 +294,7 @@ if __name__ == '__main__':
     for k, v in bitp.items():
         print("bitp elwidth=%d" % k, bin(v))
     print("bmask", bin(bm))
+    assert bm == 0  # no unused partitions
 
     m = Module()
 
@@ -301,6 +321,26 @@ if __name__ == '__main__':
     # determine arbitrarily the overall length, it is fixed to 64
     # https://bugs.libre-soc.org/show_bug.cgi?id=713#c22
 
+    # combined with vec_el_counts {0:1, 1:1, 2:2, 3:4} we have:
+    # elwidth=0b00 1x 24-bit
+    # elwidth=0b01 1x 12-bit
+    # elwidth=0b10 2x 5-bit
+    # elwidth=0b11 4x 6-bit
+    #
+    # bmask<--------1<----0<---------10<---0<-------1<0<----0<---0<----00<---0
+    # always unused:|     |     |    ||    |    |   | |     |    |     ||    |
+    #      1111111111000000 1111111111000000 1111111100000000 0000000000000000
+    #               |     |     |    ||    |    |   | |     |    |     ||    |
+    # 0b00 xxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxx xxxxxxxx........ ..............24|
+    # 0b01 xxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxx xxxx..........12|
+    # 0b10 xxxxxxxxxxxxxxxx xxxxxxxxxxx....5|xxxxxxxxxxxxxxxx xxxxxxxxxxx....5|
+    # 0b11 xxxxxxxxxx.....6|xxxxxxxxxx.....6|xxxxxxxxxx.....6|xxxxxxxxxx.....6|
+    #               ^     ^          ^^    ^        ^ ^     ^    ^     ^^
+    #     ppoints:  |     |          ||    |        | |     |    |     ||
+    #               |  bit-48        /\    | bit-24-/ |     | bit-12   /\-bit-5
+    #            bit-54      bit-38-/  \ bit-32       |   bit-16      /
+    #                                 bit-37       bit-22          bit-6
+
     elwid = Signal(2)
     pp, bitp, bm, b, c, d = layout(elwid, vec_el_counts,
                                    widths_at_elwidth,
@@ -309,6 +349,7 @@ if __name__ == '__main__':
     for k, v in bitp.items():
         print("bitp elwidth=%d" % k, bin(v))
     print("bmask", bin(bm))
+    assert bm == 0b101001000000
 
     m = Module()
 
