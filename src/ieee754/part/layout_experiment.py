@@ -144,17 +144,19 @@ def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
     # https://stackoverflow.com/questions/26367812/
     dpoints = defaultdict(list)  # if empty key, create a (empty) list
     for i, c in vec_el_counts.items():
-        print ("dpoints", i, "count", c)
+        print("dpoints", i, "count", c)
         # calculate part_wid based on overall width divided by number
         # of elements.
         part_wid = width // c
+
         def add_p(msg, start, p):
-            print ("    adding dpoint", msg, start, part_wid, i, c, p)
+            print("    adding dpoint", msg, start, part_wid, i, c, p)
             dpoints[p].append(i)  # auto-creates list if key non-existent
         # for each elwidth, create the required number of vector elements
         for start in range(c):
-            add_p("start", start, start * part_wid) # start of lane
-            add_p("end  ", start, start * part_wid + lane_shapes[i]) # end lane
+            add_p("start", start, start * part_wid)  # start of lane
+            add_p("end  ", start, start * part_wid +
+                  lane_shapes[i])  # end lane
 
     # do not need the breakpoints at the very start or the very end
     dpoints.pop(0, None)
@@ -238,14 +240,14 @@ if __name__ == '__main__':
         3: 6
     }
 
-    print ("5,6,6,6 elements", widths_at_elwidth)
+    print("5,6,6,6 elements", widths_at_elwidth)
     for i in range(4):
         pp, bitp, bm, b, c, d = \
-                    layout(i, vec_el_counts, widths_at_elwidth)
+            layout(i, vec_el_counts, widths_at_elwidth)
         pprint((i, (pp, bitp, bm, b, c, d)))
     # now check that the expected partition points occur
     print("5,6,6,6 ppt keys", pp.keys())
-    assert list(pp.keys()) == [5,6,12,18]
+    assert list(pp.keys()) == [5, 6, 12, 18]
 
     # this example was probably what the 5,6,6,6 one was supposed to be.
     # combined with vec_el_counts {0:1, 1:1, 2:2, 3:4} we have:
@@ -263,15 +265,14 @@ if __name__ == '__main__':
         3: 6    # QTY 4x 6
     }
 
-    print ("24,12,5,6 elements", widths_at_elwidth)
+    print("24,12,5,6 elements", widths_at_elwidth)
     for i in range(4):
         pp, bitp, bm, b, c, d = \
-                    layout(i, vec_el_counts, widths_at_elwidth)
+            layout(i, vec_el_counts, widths_at_elwidth)
         pprint((i, (pp, bitp, bm, b, c, d)))
     # now check that the expected partition points occur
     print("24,12,5,6 ppt keys", pp.keys())
-    assert list(pp.keys()) == [5,6,12,17,18]
-
+    assert list(pp.keys()) == [5, 6, 12, 17, 18]
 
     # this tests elwidth as an actual Signal. layout is allowed to
     # determine arbitrarily the overall length
@@ -353,7 +354,7 @@ if __name__ == '__main__':
 
     # TODO, fix this so that it is correct.  put it at the end so it
     # shows that things break and doesn't stop the other tests.
-    print ("maximum allocation from fixed_width=32")
+    print("maximum allocation from fixed_width=32")
     for i in range(4):
         pprint((i, layout(i, vec_el_counts, fixed_width=32)))
 
@@ -370,7 +371,7 @@ if __name__ == '__main__':
         3: 4,  # QTY 4x BF16
     }
     widths_at_elwidth = {
-        0: 11, # FP64 ew=0b00
+        0: 11,  # FP64 ew=0b00
         1: 8,  # FP32 ew=0b01
         2: 5,  # FP16 ew=0b10
         3: 8   # BF16 ew=0b11
@@ -385,11 +386,11 @@ if __name__ == '__main__':
     #  8bit  | x|28 .. 24|  20.16|   x|11 .. 8|x|4.. 0 |
     #  unused  x                     x
 
-    print ("11,8,5,8 elements (FP64/32/16/BF exponents)", widths_at_elwidth)
+    print("11,8,5,8 elements (FP64/32/16/BF exponents)", widths_at_elwidth)
     for i in range(4):
         pp, bitp, bm, b, c, d = \
-                    layout(i, vec_el_counts, widths_at_elwidth,
-                           fixed_width=32)
+            layout(i, vec_el_counts, widths_at_elwidth,
+                   fixed_width=32)
         pprint((i, (pp, bitp, bin(bm), b, c, d)))
     # now check that the expected partition points occur
     print("11,8,5,8 pp keys", pp.keys())
@@ -407,8 +408,8 @@ if __name__ == '__main__':
         3: 4,  # QTY 4x BF16
     }
     widths_at_elwidth = {
-        0: 11, # FP64 ew=0b00
-        1: 11, # FP32 ew=0b01
+        0: 11,  # FP64 ew=0b00
+        1: 11,  # FP32 ew=0b01
         2: 5,  # FP16 ew=0b10
         3: 8   # BF16 ew=0b11
     }
@@ -422,13 +423,12 @@ if __name__ == '__main__':
     #  8bit  | x|28 .. 24|  20.16|   x|11 .. 8|x|4.. 0 |
     #  unused  x                     x
 
-    print ("11,8,5,8 elements (FP64/32/16/BF exponents)", widths_at_elwidth)
+    print("11,8,5,8 elements (FP64/32/16/BF exponents)", widths_at_elwidth)
     for i in range(4):
         pp, bitp, bm, b, c, d = \
-                    layout(i, vec_el_counts, widths_at_elwidth,
-                           fixed_width=32)
+            layout(i, vec_el_counts, widths_at_elwidth,
+                   fixed_width=32)
         pprint((i, (pp, bitp, bin(bm), b, c, d)))
     # now check that the expected partition points occur
     print("11,8,5,8 pp keys", pp.keys())
     #assert list(pp.keys()) == [5,6,12,18]
-
