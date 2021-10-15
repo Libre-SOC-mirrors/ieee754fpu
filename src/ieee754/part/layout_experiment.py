@@ -60,19 +60,6 @@ def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
             F16 = ...    # SVP64 value 0b10
             BF16 = ...   # SVP64 value 0b11
 
-    # XXX this is redundant and out-of-date with respect to the
-    # clarification that the input is in counts of *elements*
-    # *NOT* "fixed width parts".
-    # fixed-width parts results in 14 such parts being created
-    # when 5 will do, for a simple example 5-6-6-6
-    * part: A piece of a SIMD vector, every SIMD vector is made of a
-        non-negative integer of parts. Elements are made of a power-of-two
-        number of parts. A part is a fixed number of bits wide for each
-        different SIMD layout, it doesn't vary when `elwid` changes. A part
-        can have a bit width of any non-negative integer, it is not restricted
-        to power-of-two. SIMD vectors should have as few parts as necessary,
-        since some circuits have size proportional to the number of parts.
-
     * elwid: ElWid or nmigen Value with ElWid as the shape
         the current element-width
 
