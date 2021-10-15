@@ -141,9 +141,9 @@ def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
             dpoints[p].append(i)  # auto-creates list if key non-existent
         # for each elwidth, create the required number of vector elements
         for start in range(c):
-            add_p("start", start, start * part_wid)  # start of lane
-            add_p("end  ", start, start * part_wid +
-                  lane_shapes[i])  # end lane
+            start_bit = start * part_wid
+            add_p("start", start, start_bit)  # start of lane
+            add_p("end  ", start, start_bit + lane_shapes[i])  # end lane
 
     # deduplicate dpoints lists
     for k in dpoints.keys():
