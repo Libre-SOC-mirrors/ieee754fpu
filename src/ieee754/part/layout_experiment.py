@@ -151,10 +151,7 @@ def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
 
     # do not need the breakpoints at the very start or the very end
     dpoints.pop(0, None)
-    if fixed_width is not None:
-        dpoints.pop(fixed_width, None)
-    else:
-        dpoints.pop(width, None)
+    dpoints.pop(width, None)
     plist = list(dpoints.keys())
     plist.sort()
     print("dpoints")
