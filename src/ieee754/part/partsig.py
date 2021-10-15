@@ -62,15 +62,19 @@ for name in ['add', 'eq', 'gt', 'ge', 'ls', 'xor', 'bool', 'all']:
 # behaviour.  the idea is that this interface defines which "combinations"
 # of partition selections are relevant, and as an added bonus it says
 # which partition lanes are completely irrelevant (padding, blank).
-class PartType: # TODO decide name
+class PartType:  # TODO decide name
     def __init__(self, psig):
         self.psig = psig
+
     def get_mask(self):
         return list(self.psig.partpoints.values())
+
     def get_switch(self):
         return Cat(self.get_mask())
+
     def get_cases(self):
-        return range(1<<len(self.get_mask()))
+        return range(1 << len(self.get_mask()))
+
     @property
     def blanklanes(self):
         return 0
@@ -82,20 +86,26 @@ class PartType: # TODO decide name
 # function and this class then "understands" the relationship
 # between elwidth and the PartitionPoints that were created
 # by layout()
-class ElWidthPartType: # TODO decide name
+
+
+class ElWidthPartType:  # TODO decide name
     def __init__(self, psig):
         self.psig = psig
+
     def get_mask(self):
         ppoints, pbits = layout()
-        return ppoints.values() # i think
+        return ppoints.values()  # i think
+
     def get_switch(self):
         return self.psig.elwidth
+
     def get_cases(self):
         ppoints, pbits = layout()
         return pbits
+
     @property
     def blanklanes(self):
-        return 0 # TODO
+        return 0  # TODO
 
 
 class SimdSignal(UserValue):
@@ -135,7 +145,7 @@ class SimdSignal(UserValue):
     # nmigen-redirected constructs (Mux, Cat, Switch, Assign)
 
     # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=458
-    #def __Part__(self, offset, width, stride=1, *, src_loc_at=0):
+    # def __Part__(self, offset, width, stride=1, *, src_loc_at=0):
 
     def __Repl__(self, count, *, src_loc_at=0):
         return PRepl(self.m, self, count, self.ptype)
@@ -160,7 +170,7 @@ class SimdSignal(UserValue):
         return PAssign(self.m, self, val, self.ptype)
 
     # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=458
-    #def __Switch__(self, cases, *, src_loc=None, src_loc_at=0,
+    # def __Switch__(self, cases, *, src_loc=None, src_loc_at=0,
     #                               case_src_locs={}):
 
     # no override needed, Value.__bool__ sufficient
@@ -227,15 +237,15 @@ class SimdSignal(UserValue):
         return result
 
     def __mul__(self, other):
-        raise NotImplementedError # too complicated at the moment
+        raise NotImplementedError  # too complicated at the moment
         return Operator("*", [self, other])
 
     def __rmul__(self, other):
-        raise NotImplementedError # too complicated at the moment
+        raise NotImplementedError  # too complicated at the moment
         return Operator("*", [other, self])
 
     # not needed: same as Value.__check_divisor
-    #def __check_divisor(self):
+    # def __check_divisor(self):
 
     def __mod__(self, other):
         raise NotImplementedError
@@ -260,7 +270,7 @@ class SimdSignal(UserValue):
         return Operator("//", [other, self])
 
     # not needed: same as Value.__check_shamt
-    #def __check_shamt(self):
+    # def __check_shamt(self):
 
     # TODO: detect if the 2nd operand is a Const, a Signal or a
     # SimdSignal.  if it's a Const or a Signal, a global shift
@@ -294,7 +304,7 @@ class SimdSignal(UserValue):
 
     def __lshift__(self, other):
         z = Const(0, len(self.partpoints)+1)
-        result, _ = self.ls_op(self, other, carry=z) # TODO, carry
+        result, _ = self.ls_op(self, other, carry=z)  # TODO, carry
         return result
 
     def __rlshift__(self, other):
@@ -304,7 +314,7 @@ class SimdSignal(UserValue):
 
     def __rshift__(self, other):
         z = Const(0, len(self.partpoints)+1)
-        result, _ = self.ls_op(self, other, carry=z, shr_flag=1) # TODO, carry
+        result, _ = self.ls_op(self, other, carry=z, shr_flag=1)  # TODO, carry
         return result
 
     def __rrshift__(self, other):
@@ -397,6 +407,7 @@ class SimdSignal(UserValue):
     # http://bugs.libre-riscv.org/show_bug.cgi?id=719
     def as_unsigned(self):
         return self.__new_sign(False)
+
     def as_signed(self):
         return self.__new_sign(True)
 
@@ -424,7 +435,7 @@ class SimdSignal(UserValue):
         Value, out
             ``1`` if any bits are set, ``0`` otherwise.
         """
-        return self != Const(0) # leverage the __ne__ operator here
+        return self != Const(0)  # leverage the __ne__ operator here
         return Operator("r|", [self])
 
     def all(self):
@@ -441,8 +452,8 @@ class SimdSignal(UserValue):
         #pa = PartitionedAll(width, self.partpoints)
         #setattr(self.m.submodules, self.get_modname("all"), pa)
         #self.m.d.comb += pa.a.eq(self.sig)
-        #return pa.output
-        return self == Const(-1) # leverage the __eq__ operator here
+        # return pa.output
+        return self == Const(-1)  # leverage the __eq__ operator here
 
     def xor(self):
         """Compute pairwise exclusive-or of every bit.
