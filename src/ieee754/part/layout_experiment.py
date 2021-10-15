@@ -145,6 +145,10 @@ def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
             add_p("end  ", start, start * part_wid +
                   lane_shapes[i])  # end lane
 
+    # deduplicate dpoints lists
+    for k in dpoints.keys():
+        dpoints[k] = list({i: None for i in dpoints[k]}.keys())
+
     # do not need the breakpoints at the very start or the very end
     dpoints.pop(0, None)
     if fixed_width is not None:
