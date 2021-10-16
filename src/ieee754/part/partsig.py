@@ -151,6 +151,7 @@ class SimdSignal(UserValue):
         return PRepl(self.m, self, count, self.ptype)
 
     def __Cat__(self, *args, src_loc_at=0):
+        # TODO: need SwizzledSimdValue-aware Cat
         args = [self] + list(args)
         for sig in args:
             assert isinstance(sig, SimdSignal), \
@@ -168,6 +169,10 @@ class SimdSignal(UserValue):
     def __Assign__(self, val, *, src_loc_at=0):
         # print ("partsig ass", self, val)
         return PAssign(self.m, self, val, self.ptype)
+
+    def __Slice__(self, start, stop, *, src_loc_at=0):
+        # TODO: add __Slice__ redirection to nmigen
+        raise NotImplementedError("TODO: need SwizzledSimdValue-aware Slice")
 
     # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=458
     # def __Switch__(self, cases, *, src_loc=None, src_loc_at=0,
