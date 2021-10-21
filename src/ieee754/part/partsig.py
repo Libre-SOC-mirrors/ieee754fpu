@@ -144,8 +144,15 @@ class SimdSignal(UserValue):
 
     # nmigen-redirected constructs (Mux, Cat, Switch, Assign)
 
-    # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=458
-    # def __Part__(self, offset, width, stride=1, *, src_loc_at=0):
+    # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=716
+    #def __Part__(self, offset, width, stride=1, *, src_loc_at=0):
+        raise NotImplementedError("TODO: implement as "
+                        "(self>>(offset*stride)[:width]")
+    # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=716
+    def __Slice__(self, start, stop, *, src_loc_at=0):
+        # NO.  Swizzled shall NOT be deployed, it violates
+        # Project Development Practices
+        raise NotImplementedError("TODO: need PartitionedSlice")
 
     def __Repl__(self, count, *, src_loc_at=0):
         return PRepl(self.m, self, count, self.ptype)
@@ -172,7 +179,6 @@ class SimdSignal(UserValue):
 
     def __Slice__(self, start, stop, *, src_loc_at=0):
         # TODO: add __Slice__ redirection to nmigen
-        raise NotImplementedError("TODO: need SwizzledSimdValue-aware Slice")
 
     # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=458
     # def __Switch__(self, cases, *, src_loc=None, src_loc_at=0,
