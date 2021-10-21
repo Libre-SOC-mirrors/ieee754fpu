@@ -74,6 +74,13 @@ class PartitionedCat(Elaboratable):
         self.partition_points = self.output.partpoints
         self.mwidth = len(self.partition_points)+1
 
+    def set_lhs_mode(self, is_lhs):
+        """set an indication that this is a LHS mode
+        deliberately do not set self.is_lhs in the constructor
+        to a default value in order to detect when it is missing
+        """
+        self.is_lhs = is_lhs
+
     def get_chunk(self, y, idx, numparts):
         x = self.catlist[idx]
         keys = [0] + list(x.partpoints.keys()) + [len(x.sig)]
@@ -88,7 +95,7 @@ class PartitionedCat(Elaboratable):
         return x.sig[start:end]
 
     def elaborate(self, platform):
-        print ("PartitionedCat start")
+        print ("PartitionedCat start", self.is_lhs)
         m = Module()
         comb = m.d.comb
 

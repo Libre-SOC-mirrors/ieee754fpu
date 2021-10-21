@@ -139,15 +139,17 @@ class TestCatMod(Elaboratable):
         self.partpoints = partpoints
         self.a = SimdSignal(partpoints, width)
         self.b = SimdSignal(partpoints, width*2)
-        self.cat_out = Signal(width*3)
+        self.o = SimdSignal(partpoints, width*3)
+        self.cat_out = self.o.sig
 
     def elaborate(self, platform):
         m = Module()
         comb = m.d.comb
         self.a.set_module(m)
         self.b.set_module(m)
+        self.o.set_module(m)
 
-        comb += self.cat_out.eq(Cat(self.a, self.b))
+        comb += self.o.eq(Cat(self.a, self.b))
 
         return m
 

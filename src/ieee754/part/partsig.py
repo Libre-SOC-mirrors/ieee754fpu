@@ -176,6 +176,16 @@ class SimdSignal(UserValue):
 
     def __Assign__(self, val, *, src_loc_at=0):
         print ("partsig assign", self, val)
+        # this is a truly awful hack, outlined here:
+        # https://bugs.libre-soc.org/show_bug.cgi?id=731#c13
+        # during the period between constructing Simd-aware sub-modules
+        # and the elaborate() being called on them there is a window of
+        # opportunity to indicate which of those submodules is LHS and
+        # which is RHS. manic laughter is permitted.  *gibber*.
+        if hasattr(self, "_hack_submodule"):
+            self._hack_submodule.set_lhs_mode(True)
+        if hasattr(val, "_hack_submodule"):
+            val._hack_submodule.set_lhs_mode(False)
         return PAssign(self.m, self, val, self.ptype)
 
     # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=458

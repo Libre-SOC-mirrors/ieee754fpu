@@ -12,5 +12,5 @@ def PCat(m, arglist, ctx):
     setattr(m.submodules, "pcat%d" % modcount, pc)
     # add terrible hack back-link to be able to access PartitionedCat
     # in PartitionedAssign https://bugs.libre-soc.org/show_bug.cgi?id=731#c13
-    pc.output.__hack_submodule = pc # blegh!
+    pc.output._hack_submodule = pc # blegh!
     return pc.output
