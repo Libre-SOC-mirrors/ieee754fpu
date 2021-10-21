@@ -177,9 +177,6 @@ class SimdSignal(UserValue):
         # print ("partsig ass", self, val)
         return PAssign(self.m, self, val, self.ptype)
 
-    def __Slice__(self, start, stop, *, src_loc_at=0):
-        # TODO: add __Slice__ redirection to nmigen
-
     # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=458
     # def __Switch__(self, cases, *, src_loc=None, src_loc_at=0,
     #                               case_src_locs={}):
