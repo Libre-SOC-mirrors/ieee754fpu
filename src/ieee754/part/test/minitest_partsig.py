@@ -44,19 +44,38 @@ if __name__ == "__main__":
         yield b.sig.eq(0x4567)
         yield Settle()
         out = yield o.sig
+        ao_1 = yield a1.sig
+        bo_1 = yield b1.sig
         print("out 000", bin(out&omask), hex(out&omask))
+        print("     a1 b1", hex(ao_1), hex(bo_1))
+        assert ao_1 == 0x123 and bo_1 == 0x4567
+
         yield mask.eq(0b010)
         yield Settle()
         out = yield o.sig
+        ao_1 = yield a1.sig
+        bo_1 = yield b1.sig
         print("out 010", bin(out&omask), hex(out&omask))
+        print("     a1 b1", hex(ao_1), hex(bo_1))
+        assert ao_1 == 0x123 and bo_1 == 0x4567
+
         yield mask.eq(0b110)
         yield Settle()
         out = yield o.sig
+        ao_1 = yield a1.sig
+        bo_1 = yield b1.sig
         print("out 110", bin(out&omask), hex(out&omask))
+        print("     a1 b1", hex(ao_1), hex(bo_1))
+        assert ao_1 == 0x123 and bo_1 == 0x4567
+
         yield mask.eq(0b111)
         yield Settle()
         out = yield o.sig
+        ao_1 = yield a1.sig
+        bo_1 = yield b1.sig
         print("out 111", bin(out&omask), hex(out&omask))
+        print("     a1 b1", hex(ao_1), hex(bo_1))
+        assert ao_1 == 0x123 and bo_1 == 0x4567
 
     sim.add_process(process)
     with sim.write_vcd("partition_minitest.vcd", "partition_partition_ass.gtkw",

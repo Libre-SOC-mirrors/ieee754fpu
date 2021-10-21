@@ -71,6 +71,8 @@ class PartitionedCat(Elaboratable):
         self.width = width
         mask = ctx.get_mask()
         self.output = SimdSignal(mask, self.width, reset_less=True)
+        # XXX errr... this is a bit of a hack, but should work
+        # obtain the module for the output Signal
         self.output.set_module(ctx.psig.m)
         self.partition_points = self.output.partpoints
         self.mwidth = len(self.partition_points)+1
@@ -120,7 +122,10 @@ class PartitionedCat(Elaboratable):
                         output.append(thing)
                 with m.Case(pbit):
                     # direct access to the underlying Signal
-                    comb += self.output.sig.eq(Cat(*output))
+                    if self.is_lhs:
+                        comb += Cat(*output).eq(self.output.sig) # LHS mode
+                    else:
+                        comb += self.output.sig.eq(Cat(*output)) # RHS mode
 
         print ("PartitionedCat end")
         return m
