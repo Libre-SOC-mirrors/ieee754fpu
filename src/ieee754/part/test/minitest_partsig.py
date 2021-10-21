@@ -22,12 +22,19 @@ if __name__ == "__main__":
     a = SimdSignal(mask, 16)
     b = SimdSignal(mask, 16)
     o = SimdSignal(mask, 32)
+    a1 = SimdSignal(mask, 16)
+    b1 = SimdSignal(mask, 16)
+    omask = (1<<len(o)) - 1
     a.set_module(m)
     b.set_module(m)
     o.set_module(m)
+    a1.set_module(m)
+    b1.set_module(m)
 
-    omask = (1<<len(o)) - 1
+    # RHS Cat
     m.d.comb += o.eq(Cat(a, b))
+    # LHS Cat
+    m.d.comb += Cat(a1, b1).eq(o)
 
     sim = create_simulator(m, [], "minitest")
 

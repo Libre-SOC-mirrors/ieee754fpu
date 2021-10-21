@@ -71,6 +71,7 @@ class PartitionedCat(Elaboratable):
         self.width = width
         mask = ctx.get_mask()
         self.output = SimdSignal(mask, self.width, reset_less=True)
+        self.output.set_module(ctx.psig.m)
         self.partition_points = self.output.partpoints
         self.mwidth = len(self.partition_points)+1
 
