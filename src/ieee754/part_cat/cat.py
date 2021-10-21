@@ -88,6 +88,7 @@ class PartitionedCat(Elaboratable):
         return x.sig[start:end]
 
     def elaborate(self, platform):
+        print ("PartitionedCat start")
         m = Module()
         comb = m.d.comb
 
@@ -113,6 +114,7 @@ class PartitionedCat(Elaboratable):
                     # direct access to the underlying Signal
                     comb += self.output.sig.eq(Cat(*output))
 
+        print ("PartitionedCat end")
         return m
 
     def ports(self):

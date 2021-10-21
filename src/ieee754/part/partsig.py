@@ -158,6 +158,7 @@ class SimdSignal(UserValue):
         return PRepl(self.m, self, count, self.ptype)
 
     def __Cat__(self, *args, src_loc_at=0):
+        print ("partsig cat", self, args)
         # TODO: need SwizzledSimdValue-aware Cat
         args = [self] + list(args)
         for sig in args:
@@ -174,7 +175,7 @@ class SimdSignal(UserValue):
         return PMux(self.m, self.partpoints, self, val1, val2, self.ptype)
 
     def __Assign__(self, val, *, src_loc_at=0):
-        # print ("partsig ass", self, val)
+        print ("partsig assign", self, val)
         return PAssign(self.m, self, val, self.ptype)
 
     # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=458

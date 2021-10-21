@@ -75,6 +75,7 @@ class PartitionedAssign(Elaboratable):
         return x.sig[start:end]
 
     def elaborate(self, platform):
+        print ("PartitionedAssign start")
         m = Module()
         comb = m.d.comb
 
@@ -107,6 +108,7 @@ class PartitionedAssign(Elaboratable):
                     # direct access to the underlying Signal
                     comb += self.output.sig.eq(Cat(*output))
 
+        print ("PartitionedAssign end")
         return m
 
     def ports(self):
