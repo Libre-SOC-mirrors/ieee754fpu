@@ -71,7 +71,8 @@ class PartitionedAssign(Elaboratable):
         start = keys[upto]
         end = keys[upto+numparts]
         print ("start end", start, end, len(x))
-        return x[start:end]
+        # access the underlying signal of SimdSignal directly
+        return x.sig[start:end]
 
     def elaborate(self, platform):
         m = Module()
