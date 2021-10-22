@@ -87,6 +87,7 @@ class SimdScope:
             from ieee754.part.partsig import SimdSignal
             module._setAstTypeCastFn(SimdSignal.cast)
 
+        # TODO, explain what this is about
         if isinstance(elwid, (IntElWid, FpElWid)):
             elwid_type = type(elwid)
             if vec_el_counts is None:
@@ -94,6 +95,12 @@ class SimdScope:
         assert issubclass(elwid_type, (IntElWid, FpElWid))
         self.elwid_type = elwid_type
         scalar_elwid = elwid_type(0)
+
+        # TODO, explain why this is needed.  Scalar should *NOT*
+        # be doing anything other than *DIRECTLY* passing the
+        # Signal() arguments *DIRECTLY* to nmigen.Signal.
+        # UNDER NO CIRCUMSTANCES should ANY attempt be made to
+        # treat SimdSignal as a "scalar Signal".
         if vec_el_counts is None:
             if scalar:
                 vec_el_counts = SimdMap({scalar_elwid: 1})
@@ -102,6 +109,7 @@ class SimdScope:
             else:
                 vec_el_counts = DEFAULT_INT_VEC_EL_COUNTS
 
+        # TODO, explain this function's purpose
         def check(elwid, vec_el_count):
             assert type(elwid) == elwid_type, "inconsistent ElWid types"
             vec_el_count = int(vec_el_count)
@@ -110,9 +118,11 @@ class SimdScope:
                 "vec_el_counts values must all be powers of two"
             return vec_el_count
 
+        # TODO, explain this
         self.vec_el_counts = SimdMap.map_with_elwid(check, vec_el_counts)
         self.full_el_count = max(self.vec_el_counts.values())
 
+        # TODO, explain this
         if elwid is not None:
             self.elwid = elwid
         elif scalar:
@@ -130,7 +140,7 @@ class SimdScope:
     def Signal(self, shape=None, *, name=None, reset=0, reset_less=False,
                  attrs=None, decoder=None, src_loc_at=0):
         if self.scalar:
-            # scalar mode, just return a nmigen Signal.
+            # scalar mode, just return a nmigen Signal.  THIS IS IMPORTANT.
             # when passing in SimdShape it should go "oh, this is
             # an isinstance Shape, i will just use its width and sign"
             # which is the entire reason why SimdShape had to derive
@@ -142,8 +152,15 @@ class SimdScope:
             # SIMD mode.  shape here can be either a SimdShape,
             # a Shape, or anything else that Signal can take (int or
             # a tuple (int,bool) for (width,sign)
-            s = SimdSignal(mask=self, # should contain *all* context needed
-                          shape=shape, name=name, reset=reset,
+            s = SimdSignal(mask=self, # should contain *all* context needed,
+                                      # which goes all the way through to
+                                      # the layout() function, passing
+                                      # 1) elwid 2) vec_el_counts
+                          shape=shape, # should contain the *secondary*
+                                       # part of the context needed for
+                                       # the layout() function:
+                                       # 3) lane_shapes 4) fixed_width
+                          name=name, reset=reset,
                           reset_less=reset_less, attrs=attrs,
                           decoder=decoder, src_loc_at=src_loc_at)
             # set the module context so that the SimdSignal can create
