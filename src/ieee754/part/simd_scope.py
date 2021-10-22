@@ -1,5 +1,22 @@
 # SPDX-License-Identifier: LGPL-3-or-later
 # See Notices.txt for copyright information
+"""
+SimdScope class - provides context for SIMD signals to make them useable
+under the exact same API as scalar nmigen Signals.
+
+Copyright (C) 2021 Jacob Lifshay
+Copyright (C) 2021 Luke Kenneth Casson Leighton
+
+use as:
+
+    m = Module()
+    with SimdScope(m, elwid) as s:
+        a = s.Signal(width=64, ....)
+
+    m.d.comb += a.eq(...)
+
+"""
+
 
 from ieee754.part.util import (DEFAULT_FP_VEC_EL_COUNTS,
                                DEFAULT_INT_VEC_EL_COUNTS,
@@ -109,3 +126,25 @@ class SimdScope:
                 f"        vec_el_counts={self.vec_el_counts},\n"
                 f"        full_el_count={self.full_el_count})")
 
+    def Signal(self, shape=None, *, name=None, reset=0, reset_less=False,
+                 attrs=None, decoder=None, src_loc_at=0):
+        if self.scalar:
+            # scalar mode, just return a nmigen Signal.
+            # when passing in SimdShape it should go "oh, this is
+            # an isinstance Shape, i will just use its width and sign"
+            # which is the entire reason why SimdShape had to derive
+            # from Shape
+            return Signal(shape=shape, name=name, reset=reset,
+                          reset_less=reset_less, attrs=attrs,
+                          decoder=decoder, src_loc_at=src_loc_at)
+        else:
+            # SIMD mode.  shape here can be either a SimdShape,
+            # a Shape, or anything else that Signal can take (int or
+            # a tuple (int,bool) for (width,sign)
+            s = SimdSignal(mask=self, # should contain *all* context needed
+                          shape=shape, name=name, reset=reset,
+                          reset_less=reset_less, attrs=attrs,
+                          decoder=decoder, src_loc_at=src_loc_at)
+            # set the module context so that the SimdSignal can create
+            # its own submodules during AST creation
+            s.set_module(self.module)
