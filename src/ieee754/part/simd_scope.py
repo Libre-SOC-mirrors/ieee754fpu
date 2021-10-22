@@ -100,7 +100,8 @@ class SimdScope:
         # be doing anything other than *DIRECTLY* passing the
         # Signal() arguments *DIRECTLY* to nmigen.Signal.
         # UNDER NO CIRCUMSTANCES should ANY attempt be made to
-        # treat SimdSignal as a "scalar Signal".
+        # treat SimdSignal as a "scalar Signal".  fuller explanation:
+        # https://bugs.libre-soc.org/show_bug.cgi?id=734#c3
         if vec_el_counts is None:
             if scalar:
                 vec_el_counts = SimdMap({scalar_elwid: 1})
