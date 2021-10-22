@@ -280,20 +280,20 @@ XLEN = SimdMap({
     FpElWid.BF16: 16,
 })
 
-DEFAULT_FP_PART_COUNTS = SimdMap({
-    FpElWid.F64: 4,
+DEFAULT_FP_VEC_EL_COUNTS = SimdMap({
+    FpElWid.F64: 1,
     FpElWid.F32: 2,
-    FpElWid.F16: 1,
-    FpElWid.BF16: 1,
+    FpElWid.F16: 4,
+    FpElWid.BF16: 4,
 })
 
-DEFAULT_INT_PART_COUNTS = SimdMap({
-    IntElWid.I64: 8,
-    IntElWid.I32: 4,
-    IntElWid.I16: 2,
-    IntElWid.I8: 1,
+DEFAULT_INT_VEC_EL_COUNTS = SimdMap({
+    IntElWid.I64: 1,
+    IntElWid.I32: 2,
+    IntElWid.I16: 4,
+    IntElWid.I8: 8,
 })
 
 _check_for_missing_elwidths("XLEN")
-_check_for_missing_elwidths("DEFAULT_FP_PART_COUNTS", FpElWid)
-_check_for_missing_elwidths("DEFAULT_INT_PART_COUNTS", IntElWid)
+_check_for_missing_elwidths("DEFAULT_FP_VEC_EL_COUNTS", FpElWid)
+_check_for_missing_elwidths("DEFAULT_INT_VEC_EL_COUNTS", IntElWid)
