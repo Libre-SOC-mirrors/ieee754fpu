@@ -25,6 +25,8 @@ from pprint import pprint
 from ieee754.part_mul_add.partpoints import PartitionPoints
 
 
+# XXX MAKE SURE TO PRESERVE ALL THESE COMMENTS XXX
+
 # main fn, which started out here in the bugtracker:
 # https://bugs.libre-soc.org/show_bug.cgi?id=713#c20
 # note that signed is **NOT** part of the layout, and will NOT
@@ -34,7 +36,13 @@ from ieee754.part_mul_add.partpoints import PartitionPoints
 # way requires a sign.  it is *purely* performing numerical width
 # computations that have absolutely nothing to do with whether the
 # actual data is signed or unsigned.
-def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
+#
+# context for parameters:
+# http://lists.libre-soc.org/pipermail/libre-soc-dev/2021-October/003921.html
+def layout(elwid,            # comes from SimdScope constructor
+           vec_el_counts,    # comes from SimdScope constructor
+           lane_shapes=None,   # from SimdScope.Signal via a SimdShape
+           fixed_width=None):  # from SimdScope.Signal via a SimdShape
     """calculate a SIMD layout.
 
     Glossary:
@@ -201,6 +209,9 @@ def layout(elwid, vec_el_counts, lane_shapes=None, fixed_width=None):
     return (PartitionPoints(points), bitp, bmask, width, lane_shapes,
             part_wid)
 
+# XXX XXX XXX XXX quick tests TODO convert to proper ones but kinda good
+# enough for now.  if adding new tests do not alter or delete the old ones
+# XXX XXX XXX XXX
 
 if __name__ == '__main__':
 
