@@ -39,6 +39,11 @@ from ieee754.part_mul_add.partpoints import PartitionPoints
 #
 # context for parameters:
 # http://lists.libre-soc.org/pipermail/libre-soc-dev/2021-October/003921.html
+# XXX tempted to suggest that this function remain as a function, because
+# it takes all the context it needs as parameters.  its usefulness goes
+# beyond a dingle class, and there is actually nothing realistically
+# that it needs whixh is context-srnsitive.  theregore, on balabce,
+# it should remain a function
 def layout(elwid,            # comes from SimdScope constructor
            vec_el_counts,    # comes from SimdScope constructor
            lane_shapes=None,   # from SimdScope.Signal via a SimdShape
