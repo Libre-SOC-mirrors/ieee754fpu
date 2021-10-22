@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: LGPL-3-or-later
 # See Notices.txt for copyright information
 
-
 from ieee754.part.util import (DEFAULT_FP_VEC_EL_COUNTS,
                                DEFAULT_INT_VEC_EL_COUNTS,
                                FpElWid, IntElWid, SimdMap)
@@ -31,9 +30,6 @@ class SimdScope:
             FpElWid.F16: 4,
             FpElWid.BF16: 4,
         })
-    * simd_full_width_hint: int
-        the default value for SimdLayout's full_width argument, the full number
-        of bits in a SIMD value.
     * elwid: ElWid or nmigen Value with a shape of some ElWid class
         the current elwid (simd element type)
     """
@@ -63,10 +59,16 @@ class SimdScope:
         assert self.__SCOPE_STACK.pop() is self, "inconsistent scope stack"
         return False
 
-    def __init__(self, *, simd_full_width_hint=64, elwid=None,
+    def __init__(self, *, module, elwid=None,
                  vec_el_counts=None, elwid_type=IntElWid, scalar=False):
-        assert isinstance(simd_full_width_hint, int)
-        self.simd_full_width_hint = simd_full_width_hint
+
+        # must establish module as part of context and inform
+        # the module to operate under "SIMD" Type 1 (AST) casting rules,
+        # not the # default "Value.cast" rules.
+        self.module = module
+        from ieee754.part.partsig import SimdSignal
+        module._setAstTypeCastFn(SimdSignal.cast)
+
         if isinstance(elwid, (IntElWid, FpElWid)):
             elwid_type = type(elwid)
             if vec_el_counts is None:
@@ -92,8 +94,7 @@ class SimdScope:
 
         self.vec_el_counts = SimdMap.map_with_elwid(check, vec_el_counts)
         self.full_el_count = max(self.vec_el_counts.values())
-        assert self.simd_full_width_hint % self.full_el_count == 0,\
-            "simd_full_width_hint must be a multiple of full_el_count"
+
         if elwid is not None:
             self.elwid = elwid
         elif scalar:
@@ -103,8 +104,8 @@ class SimdScope:
 
     def __repr__(self):
         return (f"SimdScope(\n"
-                f"        simd_full_width_hint={self.simd_full_width_hint},\n"
                 f"        elwid={self.elwid},\n"
                 f"        elwid_type={self.elwid_type},\n"
                 f"        vec_el_counts={self.vec_el_counts},\n"
                 f"        full_el_count={self.full_el_count})")
+
