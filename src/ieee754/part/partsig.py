@@ -117,6 +117,11 @@ class SimdSignal(UserValue):
         self.sig = Signal(*args, **kwargs)
         width = len(self.sig)  # get signal width
         # create partition points
+        if False: # isinstance(mask, SimdMode):
+            self.ptype = ElwidPartType(self)
+            # parse the args, get elwid from SimdMode,
+            # get module as well, call self.set_module(mask.module)
+            self.partpoints = ptype.make_layout_get_stuff(mask, *args, **kwargs)
         if isinstance(mask, PartitionPoints):
             self.partpoints = mask
         else:
