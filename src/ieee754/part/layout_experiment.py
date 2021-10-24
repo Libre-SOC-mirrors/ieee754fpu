@@ -142,6 +142,9 @@ def layout(elwid,            # comes from SimdScope constructor
     # create the breakpoints dictionary.
     # do multi-stage version https://bugs.libre-soc.org/show_bug.cgi?id=713#c34
     # https://stackoverflow.com/questions/26367812/
+
+    # first phase: create a dictionary of partition points (dpoints) and
+    # also keep a record of where each element starts and ends (lpoints)
     dpoints = defaultdict(list)  # if empty key, create a (empty) list
     lpoints = defaultdict(list)  # dict of list of start-end points
     padding_masks = {}
@@ -213,7 +216,7 @@ def layout(elwid,            # comes from SimdScope constructor
         if always_padding:
             bmask |= 1 << bit_index
         partition_start = partition_end
-    return (PartitionPoints(points), bitp, bmask, width, lane_shapes,
+    return (PartitionPoints(points), bitp, lpoints, bmask, width, lane_shapes,
             part_wid)
 
 # XXX XXX XXX XXX quick tests TODO convert to proper ones but kinda good
@@ -266,9 +269,9 @@ if __name__ == '__main__':
 
     print("5,6,6,6 elements", widths_at_elwidth)
     for i in range(4):
-        pp, bitp, bm, b, c, d = \
+        pp, bitp, lp, bm, b, c, d = \
             layout(i, vec_el_counts, widths_at_elwidth)
-        pprint((i, (pp, bitp, bm, b, c, d)))
+        pprint((i, (pp, bitp, lp, bm, b, c, d)))
     # now check that the expected partition points occur
     print("5,6,6,6 ppt keys", pp.keys())
     assert list(pp.keys()) == [5, 6, 12, 18]
@@ -292,9 +295,9 @@ if __name__ == '__main__':
 
     print("24,12,5,6 elements", widths_at_elwidth)
     for i in range(4):
-        pp, bitp, bm, b, c, d = \
+        pp, bitp, lp, bm, b, c, d = \
             layout(i, vec_el_counts, widths_at_elwidth)
-        pprint((i, (pp, bitp, bm, b, c, d)))
+        pprint((i, (pp, bitp, lp, bm, b, c, d)))
     # now check that the expected partition points occur
     print("24,12,5,6 ppt keys", pp.keys())
     assert list(pp.keys()) == [5, 6, 12, 17, 18]
@@ -306,9 +309,9 @@ if __name__ == '__main__':
     # https://bugs.libre-soc.org/show_bug.cgi?id=713#c30
 
     elwid = Signal(2)
-    pp, bitp, bm, b, c, d = layout(
+    pp, bitp, lp, bm, b, c, d = layout(
         elwid, vec_el_counts, widths_at_elwidth)
-    pprint((pp, b, c, d))
+    pprint((pp, lp, b, c, d))
     for k, v in bitp.items():
         print("bitp elwidth=%d" % k, bin(v))
     print("bmask", bin(bm))
@@ -360,10 +363,10 @@ if __name__ == '__main__':
     #                                 bit-37       bit-22          bit-6
 
     elwid = Signal(2)
-    pp, bitp, bm, b, c, d = layout(elwid, vec_el_counts,
+    pp, bitp, lp, bm, b, c, d = layout(elwid, vec_el_counts,
                                    widths_at_elwidth,
                                    fixed_width=64)
-    pprint((pp, b, c, d))
+    pprint((pp, lp, b, c, d))
     for k, v in bitp.items():
         print("bitp elwidth=%d" % k, bin(v))
     print("bmask", bin(bm))
@@ -437,10 +440,10 @@ if __name__ == '__main__':
 
     print("11,8,5,8 elements (FP64/32/16/BF exponents)", widths_at_elwidth)
     for i in range(4):
-        pp, bitp, bm, b, c, d = \
+        pp, bitp, lp, bm, b, c, d = \
             layout(i, vec_el_counts, widths_at_elwidth,
                    fixed_width=32)
-        pprint((i, (pp, bitp, bin(bm), b, c, d)))
+        pprint((i, (pp, lp, bitp, bin(bm), b, c, d)))
     # now check that the expected partition points occur
     print("11,8,5,8 pp keys", pp.keys())
     #assert list(pp.keys()) == [5,6,12,18]
@@ -474,10 +477,10 @@ if __name__ == '__main__':
 
     print("11,8,5,8 elements (FP64/32/16/BF exponents)", widths_at_elwidth)
     for i in range(4):
-        pp, bitp, bm, b, c, d = \
+        pp, bitp, lp, bm, b, c, d = \
             layout(i, vec_el_counts, widths_at_elwidth,
                    fixed_width=32)
-        pprint((i, (pp, bitp, bin(bm), b, c, d)))
+        pprint((i, (pp, lp, bitp, bin(bm), b, c, d)))
     # now check that the expected partition points occur
     print("11,8,5,8 pp keys", pp.keys())
     #assert list(pp.keys()) == [5,6,12,18]
