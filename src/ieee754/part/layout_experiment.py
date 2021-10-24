@@ -143,6 +143,7 @@ def layout(elwid,            # comes from SimdScope constructor
     # do multi-stage version https://bugs.libre-soc.org/show_bug.cgi?id=713#c34
     # https://stackoverflow.com/questions/26367812/
     dpoints = defaultdict(list)  # if empty key, create a (empty) list
+    lpoints = defaultdict(list)  # dict of list of start-end points
     padding_masks = {}
     always_padding_mask = (1 << width) - 1  # start with all bits padding
     for i, c in vec_el_counts.items():
@@ -162,6 +163,7 @@ def layout(elwid,            # comes from SimdScope constructor
             end_bit = start_bit + lane_shapes[i]
             element_mask = (1 << end_bit) - (1 << start_bit)
             padding_mask &= ~element_mask  # remove element from padding_mask
+            lpoints[i].append(range(start_bit, end_bit))
             add_p("start", start, start_bit)  # start of lane
             add_p("end  ", start, end_bit)  # end lane
         padding_masks[i] = padding_mask
