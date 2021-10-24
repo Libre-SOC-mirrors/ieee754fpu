@@ -138,6 +138,14 @@ class SimdScope:
                 f"        vec_el_counts={self.vec_el_counts},\n"
                 f"        full_el_count={self.full_el_count})")
 
+    ##################
+    # from here, the functions are context-aware variants of standard
+    # nmigen API (Signal, Signal.like, Shape) which are to be redirected
+    # to either their standard scalar nmigen equivalents (verbatim)
+    # or to the SimdSignal equivalents.  each one is to be documented
+    # CAREFULLY and CLEARLY.
+    ##################
+
     def Signal(self, shape=None, *, name=None, reset=0, reset_less=False,
                  attrs=None, decoder=None, src_loc_at=0):
         if self.scalar:
@@ -167,3 +175,17 @@ class SimdScope:
             # set the module context so that the SimdSignal can create
             # its own submodules during AST creation
             s.set_module(self.module)
+
+    # XXX TODO
+    def Signal_like(self): pass
+        #if self.scalar:
+            # scalar mode, just return nmigen Signal.like.  THIS IS IMPORTANT.
+        # else
+            # simd mode.
+
+    # XXX TODO
+    def Shape(self): pass
+        #if self.scalar:
+            # scalar mode, just return nmigen Shape.  THIS IS IMPORTANT.
+        # else
+            # simd mode.
