@@ -17,12 +17,7 @@ use as:
 
 """
 
-
-from ieee754.part.util import (DEFAULT_FP_VEC_EL_COUNTS,
-                               DEFAULT_INT_VEC_EL_COUNTS,
-                               FpElWid, IntElWid, SimdMap)
 from nmigen.hdl.ast import Signal
-
 
 class SimdScope:
     """The global scope object for SimdSignal and friends
@@ -78,7 +73,7 @@ class SimdScope:
         assert self.__SCOPE_STACK.pop() is self, "inconsistent scope stack"
         return False
 
-    def __init__(self, *, module, elwid, vec_el_counts, scalar=False):
+    def __init__(self, module, elwid, vec_el_counts, scalar=False):
 
         # in SIMD mode, must establish module as part of context and inform
         # the module to operate under "SIMD" Type 1 (AST) casting rules,
@@ -117,6 +112,8 @@ class SimdScope:
                           reset_less=reset_less, attrs=attrs,
                           decoder=decoder, src_loc_at=src_loc_at)
         else:
+            # recursive module import resolution
+            from ieee754.part.partsig import SimdSignal
             # SIMD mode.  shape here can be either a SimdShape,
             # a Shape, or anything else that Signal can take (int or
             # a tuple (int,bool) for (width,sign)
