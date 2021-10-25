@@ -89,7 +89,7 @@ class PartType:  # TODO decide name
 # function and this class then "understands" the relationship
 # between elwidth and the PartitionPoints that were created
 # by layout()
-class ElWidthPartType:  # TODO decide name
+class ElwidPartType:  # TODO decide name
     def __init__(self, psig):
         self.psig = psig
 
@@ -120,7 +120,7 @@ class SimdShape(Shape):
                               fixed_width=None): # fixed overall width
         widths_at_elwid = width
         # this check is done inside layout but do it again here anyway
-        assert fixed_width == None and widths_at_elwidth == None, \
+        assert fixed_width == None and widths_at_elwid == None, \
             "both width (widths_at_elwid) and fixed_width cannot be None"
         (pp, bitp, lpoints, bmask, fixed_width, lane_shapes, part_wid) = \
             layout(scope.elwid,
@@ -143,17 +143,20 @@ class SimdSignal(UserValue):
     # XXX ################################################### XXX
     # XXX Keep these functions in the same order as ast.Value XXX
     # XXX ################################################### XXX
-    def __init__(self, mask, *args, src_loc_at=0, **kwargs):
+    def __init__(self, mask, shape=None, *args, src_loc_at=0, **kwargs):
         super().__init__(src_loc_at=src_loc_at)
-        self.sig = Signal(*args, **kwargs)
-        width = len(self.sig)  # get signal width
         # create partition points
-        if False: # isinstance(mask, SimdScope): # mask parameter is a SimdScope
-            self.ptype = ElwidPartType(self, scope=mask)
-            # parse the args, get elwid from SimdMode,
-            # get module as well, call self.set_module(mask.module)
+        if isinstance(mask, SimdScope): # mask parameter is a SimdScope
+            self.ptype = ElwidPartType(self)
+            # adapt shape to a SimdShape
+            if not isinstance(shape, SimdShape):
+                shape = SimdShape(mask, shape)
+            self.sig = Signal(shape, *args, **kwargs)
+            # get partpoints from SimdShape
             self.partpoints = ptype.partpoints
         else:
+            self.sig = Signal(shape, *args, **kwargs)
+            width = len(self.sig)  # get signal width
             if isinstance(mask, PartitionPoints):
                 self.partpoints = mask
             else:
