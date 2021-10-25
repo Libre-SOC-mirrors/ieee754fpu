@@ -48,11 +48,13 @@ class SimdScope:
             FpElWid.BF16: 4,
         })
     * elwid: ElWid or nmigen Value with a shape of some ElWid class
-        the current elwid (simd element type)
+        the current elwid (simd element type).  example: Signal(2)
+        or Signal(IntElWid)
     """
 
     __SCOPE_STACK = []
 
+    # XXX REMOVE THIS FUNCTION.  ITS USE IS DANGEROUS.
     @classmethod
     def get(cls):
         """get the current SimdScope. raises a ValueError outside of any
