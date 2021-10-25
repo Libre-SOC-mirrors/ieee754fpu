@@ -59,6 +59,24 @@ for name in ['add', 'eq', 'gt', 'ge', 'ls', 'xor', 'bool', 'all']:
     modnames[name] = 0
 
 
+def get_runlengths(pbit, size):
+    res = []
+    count = 1
+    # identify where the 1s are, which indicates "start of a new partition"
+    # we want a list of the lengths of all partitions
+    for i in range(size):
+        if pbit & (1<<i): # it's a 1: ends old partition, starts new
+            res.append(count) # add partition
+            count = 1 # start again
+        else:
+            count += 1
+    # end reached, add whatever is left. could have done this by creating
+    # "fake" extra bit on the partitions, but hey
+    res.append(count)
+
+    return res
+
+
 # Prototype https://bugs.libre-soc.org/show_bug.cgi?id=713#c53
 # this provides a "compatibility" layer with existing SimdSignal
 # behaviour.  the idea is that this interface defines which "combinations"
@@ -76,6 +94,25 @@ class PartType:  # TODO decide name
 
     def get_cases(self):
         return range(1 << len(self.get_mask()))
+
+    def get_num_elements(self, pbit):
+        keys = list(self.psig.partpoints.keys())
+        return len(get_runlengths(pbit, len(keys)))
+
+    def get_el_range(self, pbit, el_num):
+        """based on the element number and the current elwid/pbit (case)
+        return the range start/end of the element within its underlying signal
+        this function is not at all designed to be efficient.
+        """
+        keys = list(self.psig.partpoints.keys())
+        runs = get_runlengths(pbit, len(keys))
+        keys = [0] + keys + [len(self.psig.sig)]
+        y = 0
+        numparts = runs[0]
+        for i in range(el_num):
+            y += numparts
+            numparts = runs[i]
+        return range(keys[y], keys[y+numparts])
 
     @property
     def blanklanes(self):
