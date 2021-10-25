@@ -113,7 +113,10 @@ def layout(elwid,            # comes from SimdScope constructor
 
     # identify if the lane_shapes is a mapping (dict, etc.)
     # if not, then assume that it is an integer (width) that
-    # needs to be requested across all partitions
+    # needs to be requested across all partitions.
+    # Note: back in SimdScope.Shape(), this is how code that was
+    # formerly scalar can be "converted" to "look like" it is
+    # still scalar, by not altering the width at any of the elwids.
     if not isinstance(lane_shapes, Mapping):
         lane_shapes = {i: lane_shapes for i in vec_el_counts}
 

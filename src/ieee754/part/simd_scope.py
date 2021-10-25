@@ -186,8 +186,16 @@ class SimdScope:
             # simd mode.
 
     # XXX TODO
-    def Shape(self): pass
-        #if self.scalar:
+    def Shape(self, width=1, signed=False):
+        if self.scalar:
             # scalar mode, just return nmigen Shape.  THIS IS IMPORTANT.
-        # else
-            # simd mode.
+            return Shape(width, signed)
+        else:
+            # SIMD mode. NOTE: for compatibility with Shape, the width
+            # is assumed to be the widths_at_elwid parameter NOT the
+            # fixed width.  this ensures that code that is converted
+            # straight from scalar to SIMD will have the exact same
+            # width at all elwidths, because layout() detects the integer
+            # case and converts it, preserving the width at all elwidths
+            return SimdShape(self, width=None, signed=signed,
+                                   widths_at_elwid=width)
