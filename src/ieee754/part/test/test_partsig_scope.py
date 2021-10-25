@@ -6,7 +6,7 @@ from nmigen import Signal, Module, Elaboratable, Mux, Cat, Shape, Repl
 from nmigen.back.pysim import Simulator, Delay, Settle
 from nmigen.cli import rtlil
 
-from ieee754.part.partsig import SimdSignal
+from ieee754.part.partsig import SimdSignal, SimdShape
 from ieee754.part.simd_scope import SimdScope
 
 from random import randint
@@ -31,11 +31,12 @@ class TestCatMod(Elaboratable):
     def __init__(self, width, elwid, vec_el_counts):
         self.m = Module()
         with SimdScope(self.m, elwid, vec_el_counts) as s:
-            # BE CAREFUL with the fixed_width parameter.
-            # it is NOT available in SimdScope.scalar mode
-            self.a = s.Signal(fixed_width=width)
-            self.b = s.Signal(fixed_width=width*2)
-            self.o = s.Signal(fixed_width=width*3)
+            shape = SimdShape(s, fixed_width=width)
+            shape2 = SimdShape(s, fixed_width=width*2)
+            shape3 = SimdShape(s, fixed_width=width*3)
+            self.a = s.Signal(shape)
+            self.b = s.Signal(shape2) # TODO: shape*2
+            self.o = s.Signal(shape3) # TODO: shape*3
         self.cat_out = self.o.sig
 
     def elaborate(self, platform):
