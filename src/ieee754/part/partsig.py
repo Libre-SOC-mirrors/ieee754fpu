@@ -94,13 +94,13 @@ class ElwidPartType:  # TODO decide name
         self.psig = psig
 
     def get_mask(self):
-        return self.psig.shape.partpoints.values()  # i think
+        return list(self.psig._shape.partpoints.values())  # i think
 
     def get_switch(self):
         return self.psig.scope.elwid       # switch on elwid: match get_cases()
 
     def get_cases(self):
-        return self.psig.shape.bitp.keys() # all possible values of elwid
+        return self.psig._shape.bitp.keys() # all possible values of elwid
 
     @property
     def blanklanes(self):
@@ -119,8 +119,9 @@ class SimdShape(Shape):
                               signed=False,
                               fixed_width=None): # fixed overall width
         widths_at_elwid = width
+        print ("SimdShape width", width, "fixed_width", fixed_width)
         # this check is done inside layout but do it again here anyway
-        assert fixed_width == None and widths_at_elwid == None, \
+        assert fixed_width != None or widths_at_elwid != None, \
             "both width (widths_at_elwid) and fixed_width cannot be None"
         (pp, bitp, lpoints, bmask, fixed_width, lane_shapes, part_wid) = \
             layout(scope.elwid,
@@ -128,10 +129,10 @@ class SimdShape(Shape):
                    widths_at_elwid,
                    fixed_width)
         self.partpoints = pp
-        self.bitp = bitp       # binary values for partpoints at each elwidth
-        self.lpoints = lpoints # layout ranges
-        self.blankmask = bmask # blanking mask (partitions always padding)
-        self.partwid = partwid # smallest alignment start point for elements
+        self.bitp = bitp        # binary values for partpoints at each elwidth
+        self.lpoints = lpoints  # layout ranges
+        self.blankmask = bmask  # blanking mask (partitions always padding)
+        self.partwid = part_wid # smallest alignment start point for elements
 
         # pass through the calculated width to Shape() so that when/if
         # objects using this Shape are downcast, they know exactly how to
@@ -145,15 +146,18 @@ class SimdSignal(UserValue):
     # XXX ################################################### XXX
     def __init__(self, mask, shape=None, *args, src_loc_at=0, **kwargs):
         super().__init__(src_loc_at=src_loc_at)
+        print ("SimdSignal shape", shape)
         # create partition points
         if isinstance(mask, SimdScope): # mask parameter is a SimdScope
+            self.scope = mask
             self.ptype = ElwidPartType(self)
             # adapt shape to a SimdShape
             if not isinstance(shape, SimdShape):
-                shape = SimdShape(mask, shape)
+                shape = SimdShape(self.scope, shape)
+            self._shape = shape
             self.sig = Signal(shape, *args, **kwargs)
             # get partpoints from SimdShape
-            self.partpoints = ptype.partpoints
+            self.partpoints = shape.partpoints
         else:
             self.sig = Signal(shape, *args, **kwargs)
             width = len(self.sig)  # get signal width

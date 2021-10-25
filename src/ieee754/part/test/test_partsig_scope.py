@@ -37,7 +37,7 @@ class TestCatMod(Elaboratable):
         self.cat_out = self.o.sig
 
     def elaborate(self, platform):
-        m = Module()
+        m = self.m
         comb = m.d.comb
 
         comb += self.o.eq(Cat(self.a, self.b))

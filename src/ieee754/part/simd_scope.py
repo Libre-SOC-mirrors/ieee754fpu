@@ -131,6 +131,7 @@ class SimdScope:
             # set the module context so that the SimdSignal can create
             # its own submodules during AST creation
             s.set_module(self.module)
+            return s
 
     # XXX TODO
     def Signal_like(self): pass
