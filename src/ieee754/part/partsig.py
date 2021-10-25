@@ -108,10 +108,10 @@ class PartType:  # TODO decide name
         runs = get_runlengths(pbit, len(keys))
         keys = [0] + keys + [len(self.psig.sig)]
         y = 0
-        numparts = runs[0]
         for i in range(el_num):
-            y += numparts
             numparts = runs[i]
+            y += numparts
+        numparts = runs[el_num]
         return range(keys[y], keys[y+numparts])
 
     @property

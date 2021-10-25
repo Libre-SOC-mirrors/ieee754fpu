@@ -112,13 +112,14 @@ class PartitionedCat(Elaboratable):
                 # then when called below in the inner nested loop they give
                 # the relevant sequential chunk
                 output = []
-                y = [0] * len(self.catlist)
+                nelts = self.ptype.get_num_elements(pbit)
                 # get a list of the length of each partition run
-                runlengths = get_runlengths(pbit, len(keys))
-                print ("pbit", bin(pbit), "runs", runlengths)
-                for i in runlengths: # for each partition
-                    for yidx in range(len(y)):
-                        thing = self.get_chunk(y, yidx, i) # sequential chunks
+                #runlengths = get_runlengths(pbit, len(keys))
+                print ("pbit", bin(pbit), "nelts", nelts)
+                for i in range(nelts): # for each element
+                    for x in self.catlist:
+                        trange = x.ptype.get_el_range(pbit, i)
+                        thing = x.sig[trange.start:trange.stop:trange.step]
                         output.append(thing)
                 with m.Case(pbit):
                     # direct access to the underlying Signal
@@ -142,8 +143,11 @@ if __name__ == "__main__":
     mask = Signal(3)
     a = SimdSignal(mask, 32)
     b = SimdSignal(mask, 16)
+    a.set_module(m)
+    b.set_module(m)
     catlist = [a, b]
     m.submodules.cat = cat = PartitionedCat(catlist, a.ptype)
+    cat.set_lhs_mode(False)
 
     traces = cat.ports()
     sim = create_simulator(m, traces, "partcat")
