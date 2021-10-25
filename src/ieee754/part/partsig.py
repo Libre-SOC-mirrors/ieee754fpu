@@ -28,6 +28,8 @@ from ieee754.part_mux.part_mux import PMux
 from ieee754.part_ass.passign import PAssign
 from ieee754.part_cat.pcat import PCat
 from ieee754.part_repl.prepl import PRepl
+from ieee754.part.simd_scope import SimdScope
+from ieee754.part.layout_experiment import layout
 from operator import or_, xor, and_, not_
 
 from nmigen import (Signal, Const, Cat)
@@ -86,26 +88,44 @@ class PartType:  # TODO decide name
 # function and this class then "understands" the relationship
 # between elwidth and the PartitionPoints that were created
 # by layout()
-
-
 class ElWidthPartType:  # TODO decide name
     def __init__(self, psig):
         self.psig = psig
 
     def get_mask(self):
-        ppoints, pbits = layout()
+        ppoints = self.psig.scope.partpoints
         return ppoints.values()  # i think
 
     def get_switch(self):
         return self.psig.elwidth
 
     def get_cases(self):
-        ppoints, pbits = layout()
+        pbits = self.psig.scope.bitp
         return pbits
 
     @property
     def blanklanes(self):
         return 0  # TODO
+
+
+class SimdShape(Shape):
+    """a SIMD variant of Shape. supports:
+        * fixed overall width with variable (maxed-out) element lengths
+        * fixed element widths with overall size auto-determined
+        * both fixed overall width and fixed element widths
+    """
+    def __init__(self, scope, width=None, signed=False, widths_at_elwid=None):
+        # this check is done inside layout but do it again here anyway
+        assert width == None and widths_at_elwidth == None, \
+            "both width and widths_at_elwidth cannot be None"
+        (pp, bitp, lpoints, bmask, fixed_width, lane_shapes, part_wid) = \
+            layout(scope.elwid, scope.vec_el_counts, widths_at_elwid, width)
+        self.partpoints = pp
+        self.bitp = bitp       # binary values for partpoints at each elwidth
+        self.lpoints = lpoints # layout ranges
+        self.blankmask = bmask # blanking mask (partitions always padding)
+        self.partwid = partwid # smallest alignment start point for elements
+        Shape.__init__(self, fixed_width, signed)
 
 
 class SimdSignal(UserValue):
@@ -117,11 +137,11 @@ class SimdSignal(UserValue):
         self.sig = Signal(*args, **kwargs)
         width = len(self.sig)  # get signal width
         # create partition points
-        if False: # isinstance(mask, SimdMode):
-            self.ptype = ElwidPartType(self)
+        if False: # isinstance(mask, SimdScope): # mask parameter is a SimdScope
+            self.ptype = ElwidPartType(self, scope=mask)
             # parse the args, get elwid from SimdMode,
             # get module as well, call self.set_module(mask.module)
-            self.partpoints = ptype.make_layout_get_stuff(mask, *args, **kwargs)
+            self.partpoints = ptype.partpoints
         else:
             if isinstance(mask, PartitionPoints):
                 self.partpoints = mask
@@ -424,6 +444,8 @@ class SimdSignal(UserValue):
     # def __getitem__(self, key):
 
     def __new_sign(self, signed):
+        # XXX NO - SimdShape not Shape
+        print ("XXX requires SimdShape not Shape")
         shape = Shape(len(self), signed=signed)
         result = SimdSignal.like(self, shape=shape)
         self.m.d.comb += result.sig.eq(self.sig)
