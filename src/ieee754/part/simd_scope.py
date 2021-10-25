@@ -197,5 +197,8 @@ class SimdScope:
             # straight from scalar to SIMD will have the exact same
             # width at all elwidths, because layout() detects the integer
             # case and converts it, preserving the width at all elwidths
-            return SimdShape(self, width=None, signed=signed,
-                                   widths_at_elwid=width)
+            # the names are preserved to ensure parameter-compatibility
+            # with Shape()
+            return SimdShape(self, width=width,   # actually widths_at_elwid
+                                   signed=signed,
+                                   fixed_width=None)

@@ -109,21 +109,33 @@ class ElWidthPartType:  # TODO decide name
 
 class SimdShape(Shape):
     """a SIMD variant of Shape. supports:
-        * fixed overall width with variable (maxed-out) element lengths
-        * fixed element widths with overall size auto-determined
-        * both fixed overall width and fixed element widths
+    * fixed overall width with variable (maxed-out) element lengths
+    * fixed element widths with overall size auto-determined
+    * both fixed overall width and fixed element widths
+
+    naming is preserved to be compatible with Shape().
     """
-    def __init__(self, scope, width=None, signed=False, widths_at_elwid=None):
+    def __init__(self, scope, width=None, # this is actually widths_at_elwid
+                              signed=False,
+                              fixed_width=None): # fixed overall width
+        widths_at_elwid = width
         # this check is done inside layout but do it again here anyway
-        assert width == None and widths_at_elwidth == None, \
-            "both width and widths_at_elwidth cannot be None"
+        assert fixed_width == None and widths_at_elwidth == None, \
+            "both width (widths_at_elwid) and fixed_width cannot be None"
         (pp, bitp, lpoints, bmask, fixed_width, lane_shapes, part_wid) = \
-            layout(scope.elwid, scope.vec_el_counts, widths_at_elwid, width)
+            layout(scope.elwid,
+                   scope.vec_el_counts,
+                   widths_at_elwid,
+                   fixed_width)
         self.partpoints = pp
         self.bitp = bitp       # binary values for partpoints at each elwidth
         self.lpoints = lpoints # layout ranges
         self.blankmask = bmask # blanking mask (partitions always padding)
         self.partwid = partwid # smallest alignment start point for elements
+
+        # pass through the calculated width to Shape() so that when/if
+        # objects using this Shape are downcast, they know exactly how to
+        # get *all* bits and need know absolutely nothing about SIMD at all
         Shape.__init__(self, fixed_width, signed)
 
 
