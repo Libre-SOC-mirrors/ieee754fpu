@@ -78,8 +78,7 @@ class SimdScope:
         assert self.__SCOPE_STACK.pop() is self, "inconsistent scope stack"
         return False
 
-    def __init__(self, *, module, elwid=None,
-                 vec_el_counts=None, elwid_type=IntElWid, scalar=False):
+    def __init__(self, *, module, elwid, vec_el_counts, scalar=False):
 
         # in SIMD mode, must establish module as part of context and inform
         # the module to operate under "SIMD" Type 1 (AST) casting rules,
@@ -89,56 +88,14 @@ class SimdScope:
             from ieee754.part.partsig import SimdSignal
             module._setAstTypeCastFn(SimdSignal.cast)
 
-        # TODO, explain what this is about
-        if isinstance(elwid, (IntElWid, FpElWid)):
-            elwid_type = type(elwid)
-            if vec_el_counts is None:
-                vec_el_counts = SimdMap({elwid: 1})
-        assert issubclass(elwid_type, (IntElWid, FpElWid))
-        self.elwid_type = elwid_type
-        scalar_elwid = elwid_type(0)
-
-        # TODO, explain why this is needed.  Scalar should *NOT*
-        # be doing anything other than *DIRECTLY* passing the
-        # Signal() arguments *DIRECTLY* to nmigen.Signal.
-        # UNDER NO CIRCUMSTANCES should ANY attempt be made to
-        # treat SimdSignal as a "scalar Signal".  fuller explanation:
-        # https://bugs.libre-soc.org/show_bug.cgi?id=734#c3
-        if vec_el_counts is None:
-            if scalar:
-                vec_el_counts = SimdMap({scalar_elwid: 1})
-            elif issubclass(elwid_type, FpElWid):
-                vec_el_counts = DEFAULT_FP_VEC_EL_COUNTS
-            else:
-                vec_el_counts = DEFAULT_INT_VEC_EL_COUNTS
-
-        # TODO, explain this function's purpose
-        def check(elwid, vec_el_count):
-            assert type(elwid) == elwid_type, "inconsistent ElWid types"
-            vec_el_count = int(vec_el_count)
-            assert vec_el_count != 0 \
-                and (vec_el_count & (vec_el_count - 1)) == 0,\
-                "vec_el_counts values must all be powers of two"
-            return vec_el_count
-
-        # TODO, explain this
-        self.vec_el_counts = SimdMap.map_with_elwid(check, vec_el_counts)
-        self.full_el_count = max(self.vec_el_counts.values())
-
-        # TODO, explain this
-        if elwid is not None:
-            self.elwid = elwid
-        elif scalar:
-            self.elwid = scalar_elwid
-        else:
-            self.elwid = Signal(elwid_type)
+        self.elwid = elwid
+        self.vec_el_counts = vec_el_counts
+        self.scalar = scalar
 
     def __repr__(self):
         return (f"SimdScope(\n"
                 f"        elwid={self.elwid},\n"
-                f"        elwid_type={self.elwid_type},\n"
-                f"        vec_el_counts={self.vec_el_counts},\n"
-                f"        full_el_count={self.full_el_count})")
+                f"        vec_el_counts={self.vec_el_counts},\n")
 
     ##################
     # from here, the functions are context-aware variants of standard
