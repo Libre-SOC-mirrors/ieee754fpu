@@ -81,6 +81,7 @@ class PartType:  # TODO decide name
     def blanklanes(self):
         return 0
 
+
 # this one would be an elwidth version
 # see https://bugs.libre-soc.org/show_bug.cgi?id=713#c34
 # it requires an "adapter" which is the layout() function
@@ -93,19 +94,17 @@ class ElWidthPartType:  # TODO decide name
         self.psig = psig
 
     def get_mask(self):
-        ppoints = self.psig.scope.partpoints
-        return ppoints.values()  # i think
+        return self.psig.shape.partpoints.values()  # i think
 
     def get_switch(self):
-        return self.psig.elwidth
+        return self.psig.scope.elwid       # switch on elwid: match get_cases()
 
     def get_cases(self):
-        pbits = self.psig.scope.bitp
-        return pbits
+        return self.psig.shape.bitp.keys() # all possible values of elwid
 
     @property
     def blanklanes(self):
-        return 0  # TODO
+        return self.psig.shape.blankmask
 
 
 class SimdShape(Shape):
