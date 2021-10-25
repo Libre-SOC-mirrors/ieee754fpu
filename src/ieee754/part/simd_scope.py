@@ -101,10 +101,7 @@ class SimdScope:
     ##################
 
     def Signal(self, shape=None, *, name=None, reset=0, reset_less=False,
-                 attrs=None, decoder=None, src_loc_at=0,
-                 fixed_width=None): # TODO: *REMOVE* THIS. work out how.
-                                    # BE CAREFUL when using this param
-                                    # it is NOT available in scalar mode
+                 attrs=None, decoder=None, src_loc_at=0):
         if self.scalar:
             # scalar mode, just return a nmigen Signal.  THIS IS IMPORTANT.
             # when passing in SimdShape it should go "oh, this is
@@ -130,8 +127,7 @@ class SimdScope:
                                        # 3) lane_shapes 4) fixed_width
                           name=name, reset=reset,
                           reset_less=reset_less, attrs=attrs,
-                          decoder=decoder, src_loc_at=src_loc_at,
-                          fixed_width=fixed_width)
+                          decoder=decoder, src_loc_at=src_loc_at)
             # set the module context so that the SimdSignal can create
             # its own submodules during AST creation
             s.set_module(self.module)
