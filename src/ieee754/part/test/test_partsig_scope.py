@@ -31,9 +31,11 @@ class TestCatMod(Elaboratable):
     def __init__(self, width, elwid, vec_el_counts):
         self.m = Module()
         with SimdScope(self.m, elwid, vec_el_counts) as s:
-            self.a = s.Signal(width)
-            self.b = s.Signal(width*2)
-            self.o = s.Signal(width*3)
+            # BE CAREFUL with the fixed_width parameter.
+            # it is NOT available in SimdScope.scalar mode
+            self.a = s.Signal(fixed_width=width)
+            self.b = s.Signal(fixed_width=width*2)
+            self.o = s.Signal(fixed_width=width*3)
         self.cat_out = self.o.sig
 
     def elaborate(self, platform):

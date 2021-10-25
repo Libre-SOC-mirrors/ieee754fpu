@@ -144,7 +144,8 @@ class SimdSignal(UserValue):
     # XXX ################################################### XXX
     # XXX Keep these functions in the same order as ast.Value XXX
     # XXX ################################################### XXX
-    def __init__(self, mask, shape=None, *args, src_loc_at=0, **kwargs):
+    def __init__(self, mask, shape=None, *args,
+                       src_loc_at=0, fixed_width=None, **kwargs):
         super().__init__(src_loc_at=src_loc_at)
         print ("SimdSignal shape", shape)
         # create partition points
@@ -153,7 +154,7 @@ class SimdSignal(UserValue):
             self.ptype = ElwidPartType(self)
             # adapt shape to a SimdShape
             if not isinstance(shape, SimdShape):
-                shape = SimdShape(self.scope, shape)
+                shape = SimdShape(self.scope, shape, fixed_width=fixed_width)
             self._shape = shape
             self.sig = Signal(shape, *args, **kwargs)
             # get partpoints from SimdShape
