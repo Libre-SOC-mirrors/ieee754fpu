@@ -3,8 +3,8 @@
 
 from enum import Enum
 from typing import (Any, Callable, ClassVar, Generic, ItemsView, Iterable,
-                    KeysView, Literal, Mapping, Optional, Tuple, TypeVar,
-                    Union, ValuesView, overload)
+                    Iterator, KeysView, Literal, Mapping, Optional, Tuple,
+                    TypeVar, Union, ValuesView, overload)
 
 
 class ElWid(Enum):
@@ -36,6 +36,38 @@ class SimdMap(Generic[_T]):
     ALL_ELWIDTHS: ClassVar[Tuple[_ElWid, ...]]
 
     __map: Mapping[_ElWid, _T]
+
+    @overload
+    @staticmethod
+    def extract_value_algo(values: None,
+                           default: _T2 = None, *,
+                           simd_map_get: Callable[["SimdMap[_T]"], _T],
+                           mapping_get: Callable[[Mapping[_ElWid, _T]], _T],
+                           ) -> _T2: ...
+
+    @overload
+    @staticmethod
+    def extract_value_algo(values: SimdMap[_T],
+                           default: _T2 = None, *,
+                           simd_map_get: Callable[["SimdMap[_T]"], _T],
+                           mapping_get: Callable[[Mapping[_ElWid, _T]], _T],
+                           ) -> Union[_T, _T2]: ...
+
+    @overload
+    @staticmethod
+    def extract_value_algo(values: Mapping[_ElWid, _T],
+                           default: _T2 = None, *,
+                           simd_map_get: Callable[["SimdMap[_T]"], _T],
+                           mapping_get: Callable[[Mapping[_ElWid, _T]], _T],
+                           ) -> Union[_T, _T2]: ...
+
+    @overload
+    @staticmethod
+    def extract_value_algo(values: _T,
+                           default: _T2 = None, *,
+                           simd_map_get: Callable[["SimdMap[_T]"], _T],
+                           mapping_get: Callable[[Mapping[_ElWid, _T]], _T],
+                           ) -> Union[_T, _T2]: ...
 
     @overload
     @classmethod
@@ -803,7 +835,7 @@ class SimdMap(Generic[_T]):
     def get(self, elwid: _ElWid, default: _T2 = None, *,
             raise_key_error: bool = False) -> Union[_T, _T2]: ...
 
-    def __iter__(self) -> Iterable[Tuple[_ElWid, _T]]: ...
+    def __iter__(self) -> Iterator[Tuple[_ElWid, _T]]: ...
 
     @overload
     def __add__(self, other: SimdMap[_T]) -> SimdMap[_T]: ...
@@ -1109,7 +1141,72 @@ class SimdMap(Generic[_T]):
                          ) -> Iterable[_ElWid]: ...
 
 
-XLEN: SimdMap[int] = ...
+class SimdWHintMap(SimdMap[_T]):
+    @overload
+    @classmethod
+    def extract_width_hint(cls,
+                           values: None,
+                           default: _T2 = None) -> _T2: ...
+
+    @overload
+    @classmethod
+    def extract_width_hint(cls,
+                           values: SimdMap[_T],
+                           default: _T2 = None) -> Union[_T, _T2]: ...
+
+    @overload
+    @classmethod
+    def extract_width_hint(cls,
+                           values: Mapping[_ElWid, _T],
+                           default: _T2 = None) -> Union[_T, _T2]: ...
+
+    @overload
+    @classmethod
+    def extract_width_hint(cls,
+                           values: _T,
+                           default: _T2 = None) -> Union[_T, _T2]: ...
+
+    @overload
+    def __init__(self, values: Optional[SimdMap[_T]] = None, *,
+                 width_hint: Optional[SimdMap[_T]] = None): ...
+
+    @overload
+    def __init__(self, values: Optional[Mapping[_ElWid, _T]] = None, *,
+                 width_hint: Optional[SimdMap[_T]] = None): ...
+
+    @overload
+    def __init__(self, values: Optional[_T] = None, *,
+                 width_hint: Optional[SimdMap[_T]] = None): ...
+
+    @overload
+    def __init__(self, values: Optional[SimdMap[_T]] = None, *,
+                 width_hint: Optional[Mapping[_ElWid, _T]] = None): ...
+
+    @overload
+    def __init__(self, values: Optional[Mapping[_ElWid, _T]] = None, *,
+                 width_hint: Optional[Mapping[_ElWid, _T]] = None): ...
+
+    @overload
+    def __init__(self, values: Optional[_T] = None, *,
+                 width_hint: Optional[Mapping[_ElWid, _T]] = None): ...
+
+    @overload
+    def __init__(self, values: Optional[SimdMap[_T]] = None, *,
+                 width_hint: Optional[_T] = None): ...
+
+    @overload
+    def __init__(self, values: Optional[Mapping[_ElWid, _T]] = None, *,
+                 width_hint: Optional[_T] = None): ...
+
+    @overload
+    def __init__(self, values: Optional[_T] = None, *,
+                 width_hint: Optional[_T] = None): ...
+
+    @property
+    def width_hint(self) -> _T: ...
+
+
+XLEN: SimdWHintMap[int] = ...
 
 DEFAULT_FP_VEC_EL_COUNTS: SimdMap[int] = ...
 
