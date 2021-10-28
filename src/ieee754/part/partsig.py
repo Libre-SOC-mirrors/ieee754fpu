@@ -156,6 +156,7 @@ class SimdShape(Shape):
     def __init__(self, scope, width=None,  # this is actually widths_at_elwid
                  signed=False,
                  fixed_width=None):  # fixed overall width
+        self.scope = scope
         widths_at_elwid = width
         print("SimdShape width", width, "fixed_width", fixed_width)
         # this check is done inside layout but do it again here anyway
@@ -171,11 +172,26 @@ class SimdShape(Shape):
         self.lpoints = lpoints  # layout ranges
         self.blankmask = bmask  # blanking mask (partitions always padding)
         self.partwid = part_wid  # smallest alignment start point for elements
+        self.lane_shapes = lane_shapes
 
         # pass through the calculated width to Shape() so that when/if
         # objects using this Shape are downcast, they know exactly how to
         # get *all* bits and need know absolutely nothing about SIMD at all
         Shape.__init__(self, fixed_width, signed)
+
+    def __mul__(self, other):
+        if isinstance(other, int):
+            lane_shapes = {k: v * other for k, v in self.lane_shapes}
+            # XXX not correct, we need a width-hint, not an overwrite
+            # lane_shapes argument...
+            return SimdShape(self.scope, lane_shapes, signed=self.signed,
+                             fixed_width=self.width * other)
+        else:
+            raise NotImplementedError(
+                f"Multiplying a SimdShape by {type(other)} isn't implemented")
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
 
 
 class SimdSignal(UserValue):
