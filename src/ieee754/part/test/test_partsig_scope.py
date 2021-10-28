@@ -29,13 +29,13 @@ def create_simulator(module, traces, test_name):
 class TestCatMod(Elaboratable):
     def __init__(self, width, elwid, vec_el_counts):
         self.m = Module()
-        with SimdScope(self.m, elwid, vec_el_counts) as s:
-            shape = SimdShape(s, fixed_width=width)
-            shape2 = SimdShape(s, fixed_width=width*2)
-            shape3 = SimdShape(s, fixed_width=width*3)
-            self.a = s.Signal(shape)
-            self.b = s.Signal(shape2)  # TODO: shape*2
-            self.o = s.Signal(shape3)  # TODO: shape*3
+        s = SimdScope(self.m, elwid, vec_el_counts)
+        shape = SimdShape(s, fixed_width=width)
+        shape2 = SimdShape(s, fixed_width=width*2)
+        shape3 = SimdShape(s, fixed_width=width*3)
+        self.a = s.Signal(shape)
+        self.b = s.Signal(shape2)  # TODO: shape*2
+        self.o = s.Signal(shape3)  # TODO: shape*3
         self.cat_out = self.o.sig
 
     def elaborate(self, platform):

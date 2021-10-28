@@ -10,8 +10,8 @@ Copyright (C) 2021 Luke Kenneth Casson Leighton
 use as:
 
     m = Module()
-    with SimdScope(m, elwid) as s:
-        a = s.Signal(width=64, ....)
+    s = SimdScope(m, elwid)
+    a = s.Signal(width=64, ....)
 
     m.d.comb += a.eq(...)
 
@@ -47,32 +47,6 @@ class SimdScope:
         the current elwid (simd element type).  example: Signal(2)
         or Signal(IntElWid)
     """
-
-    __SCOPE_STACK = []
-
-    # XXX REMOVE THIS FUNCTION.  ITS USE IS DANGEROUS.
-    @classmethod
-    def get(cls):
-        """get the current SimdScope. raises a ValueError outside of any
-        SimdScope.
-
-        Example:
-        with SimdScope(...) as s:
-            assert SimdScope.get() is s
-        """
-        if len(cls.__SCOPE_STACK) > 0:
-            retval = cls.__SCOPE_STACK[-1]
-            assert isinstance(retval, SimdScope), "inconsistent scope stack"
-            return retval
-        raise ValueError("not in a `with SimdScope()` statement")
-
-    def __enter__(self):
-        self.__SCOPE_STACK.append(self)
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        assert self.__SCOPE_STACK.pop() is self, "inconsistent scope stack"
-        return False
 
     def __init__(self, module, elwid, vec_el_counts, scalar=False):
 
