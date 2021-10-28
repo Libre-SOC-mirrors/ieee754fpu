@@ -224,11 +224,49 @@ class SimdShape(Shape):
             # wheww, got everything.
             return SimdShape(self.scope,              # same scope
                              width=lane_shapes,       # widths_at_elwid
-                             signed=self.signed,      # same sign
+                             signed=self.signed,      # same sign? hmmm XXX
                              fixed_width=fixed_width) # overall width
         else:
             raise NotImplementedError(
                 f"Multiplying a SimdShape by {type(other)} isn't implemented")
+
+            # TODO (and go over examples, sigh).  this is deliberately *after*
+            # the raise NotImplementedError because it needs review.
+
+            # also probably TODO: potentially the other argument could be
+            # a Shape() not a SimdShape().  sigh.
+
+            # for SimdShape-to-SimdShape multiply, the rules are slightly
+            # different: both sides have to be PRIORITY_FIXED for a
+            # PRIORITY_FIXED result to be returned.  if either (or both)
+            # of the LHS and RHS were given elwidths (lane_shapes != None)
+            # then tough luck: the return result is still PRIORITY_ELWID.
+            # TODO: review that.  it *might* be the case (again, due to
+            # a coincidence of multiply, that when PRIORITY_BOTH is set
+            # it is possible to return a PRIORITY_BOTH result. but..
+            # it is unlikely)
+
+            fixed_width = None
+            lane_shapes = None
+
+            # first, check if this is fixed_width mode.  this is *only*
+            # possible if *both* LHS *and* RHS are PRIORITY_FIXED.
+            if (self.mode_flag == PRIORITY_FIXED and
+                other.mode_flag == PRIORITY_FIXED):
+                fixed_width = self.width * other.width
+            else:
+                # (XXX assume other is SimdShape) - when PRIORITY_ELWID
+                # the result *has* to be a PRIORITY_ELWID (FIXED is *IGNORED*)
+                # use *either* the computed *or* the given lane_shapes
+                lane_shapes = {k: v * other.lane_shapes[k] \
+                                  for k, v in self.lane_shapes}
+
+            # wheww, got everything.
+            return SimdShape(self.scope,              # same scope
+                             width=lane_shapes,       # widths_at_elwid
+                             signed=self.signed,      # same sign? hmmm XXX
+                             fixed_width=fixed_width) # overall width
+
 
     def __rmul__(self, other):
         return self.__mul__(other)
