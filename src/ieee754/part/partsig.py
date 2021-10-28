@@ -65,9 +65,9 @@ def get_runlengths(pbit, size):
     # identify where the 1s are, which indicates "start of a new partition"
     # we want a list of the lengths of all partitions
     for i in range(size):
-        if pbit & (1<<i): # it's a 1: ends old partition, starts new
-            res.append(count) # add partition
-            count = 1 # start again
+        if pbit & (1 << i):  # it's a 1: ends old partition, starts new
+            res.append(count)  # add partition
+            count = 1  # start again
         else:
             count += 1
     # end reached, add whatever is left. could have done this by creating
@@ -137,7 +137,7 @@ class ElwidPartType:  # TODO decide name
         return self.psig.scope.elwid       # switch on elwid: match get_cases()
 
     def get_cases(self):
-        return self.psig._shape.bitp.keys() # all possible values of elwid
+        return self.psig._shape.bitp.keys()  # all possible values of elwid
 
     @property
     def blanklanes(self):
@@ -152,11 +152,12 @@ class SimdShape(Shape):
 
     naming is preserved to be compatible with Shape().
     """
-    def __init__(self, scope, width=None, # this is actually widths_at_elwid
-                              signed=False,
-                              fixed_width=None): # fixed overall width
+
+    def __init__(self, scope, width=None,  # this is actually widths_at_elwid
+                 signed=False,
+                 fixed_width=None):  # fixed overall width
         widths_at_elwid = width
-        print ("SimdShape width", width, "fixed_width", fixed_width)
+        print("SimdShape width", width, "fixed_width", fixed_width)
         # this check is done inside layout but do it again here anyway
         assert fixed_width != None or widths_at_elwid != None, \
             "both width (widths_at_elwid) and fixed_width cannot be None"
@@ -169,7 +170,7 @@ class SimdShape(Shape):
         self.bitp = bitp        # binary values for partpoints at each elwidth
         self.lpoints = lpoints  # layout ranges
         self.blankmask = bmask  # blanking mask (partitions always padding)
-        self.partwid = part_wid # smallest alignment start point for elements
+        self.partwid = part_wid  # smallest alignment start point for elements
 
         # pass through the calculated width to Shape() so that when/if
         # objects using this Shape are downcast, they know exactly how to
@@ -182,11 +183,11 @@ class SimdSignal(UserValue):
     # XXX Keep these functions in the same order as ast.Value XXX
     # XXX ################################################### XXX
     def __init__(self, mask, shape=None, *args,
-                       src_loc_at=0, fixed_width=None, **kwargs):
+                 src_loc_at=0, fixed_width=None, **kwargs):
         super().__init__(src_loc_at=src_loc_at)
-        print ("SimdSignal shape", shape)
+        print("SimdSignal shape", shape)
         # create partition points
-        if isinstance(mask, SimdScope): # mask parameter is a SimdScope
+        if isinstance(mask, SimdScope):  # mask parameter is a SimdScope
             self.scope = mask
             self.ptype = ElwidPartType(self)
             # adapt shape to a SimdShape
@@ -227,10 +228,11 @@ class SimdSignal(UserValue):
     # nmigen-redirected constructs (Mux, Cat, Switch, Assign)
 
     # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=716
-    #def __Part__(self, offset, width, stride=1, *, src_loc_at=0):
+    # def __Part__(self, offset, width, stride=1, *, src_loc_at=0):
         raise NotImplementedError("TODO: implement as "
-                        "(self>>(offset*stride)[:width]")
+                                  "(self>>(offset*stride)[:width]")
     # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=716
+
     def __Slice__(self, start, stop, *, src_loc_at=0):
         # NO.  Swizzled shall NOT be deployed, it violates
         # Project Development Practices
@@ -240,7 +242,7 @@ class SimdSignal(UserValue):
         return PRepl(self.m, self, count, self.ptype)
 
     def __Cat__(self, *args, src_loc_at=0):
-        print ("partsig cat", self, args)
+        print("partsig cat", self, args)
         # TODO: need SwizzledSimdValue-aware Cat
         args = [self] + list(args)
         for sig in args:
@@ -257,7 +259,7 @@ class SimdSignal(UserValue):
         return PMux(self.m, self.partpoints, self, val1, val2, self.ptype)
 
     def __Assign__(self, val, *, src_loc_at=0):
-        print ("partsig assign", self, val)
+        print("partsig assign", self, val)
         # this is a truly awful hack, outlined here:
         # https://bugs.libre-soc.org/show_bug.cgi?id=731#c13
         # during the period between constructing Simd-aware sub-modules
@@ -501,7 +503,7 @@ class SimdSignal(UserValue):
 
     def __new_sign(self, signed):
         # XXX NO - SimdShape not Shape
-        print ("XXX requires SimdShape not Shape")
+        print("XXX requires SimdShape not Shape")
         shape = Shape(len(self), signed=signed)
         result = SimdSignal.like(self, shape=shape)
         self.m.d.comb += result.sig.eq(self.sig)
