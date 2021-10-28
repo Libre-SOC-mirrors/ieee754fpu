@@ -19,6 +19,7 @@ use as:
 
 from nmigen.hdl.ast import Signal
 
+
 class SimdScope:
     """The global scope object for SimdSignal and friends
 
@@ -101,7 +102,7 @@ class SimdScope:
     ##################
 
     def Signal(self, shape=None, *, name=None, reset=0, reset_less=False,
-                 attrs=None, decoder=None, src_loc_at=0):
+               attrs=None, decoder=None, src_loc_at=0):
         if self.scalar:
             # scalar mode, just return a nmigen Signal.  THIS IS IMPORTANT.
             # when passing in SimdShape it should go "oh, this is
@@ -117,28 +118,29 @@ class SimdScope:
             # SIMD mode.  shape here can be either a SimdShape,
             # a Shape, or anything else that Signal can take (int or
             # a tuple (int,bool) for (width,sign)
-            s = SimdSignal(mask=self, # should contain *all* context needed,
-                                      # which goes all the way through to
-                                      # the layout() function, passing
-                                      # 1) elwid 2) vec_el_counts
-                          shape=shape, # should contain the *secondary*
+            s = SimdSignal(mask=self,  # should contain *all* context needed,
+                           # which goes all the way through to
+                           # the layout() function, passing
+                           # 1) elwid 2) vec_el_counts
+                           shape=shape,  # should contain the *secondary*
                                        # part of the context needed for
                                        # the layout() function:
                                        # 3) lane_shapes 4) fixed_width
-                          name=name, reset=reset,
-                          reset_less=reset_less, attrs=attrs,
-                          decoder=decoder, src_loc_at=src_loc_at)
+                           name=name, reset=reset,
+                           reset_less=reset_less, attrs=attrs,
+                           decoder=decoder, src_loc_at=src_loc_at)
             # set the module context so that the SimdSignal can create
             # its own submodules during AST creation
             s.set_module(self.module)
             return s
 
     # XXX TODO
-    def Signal_like(self): pass
-        #if self.scalar:
-            # scalar mode, just return nmigen Signal.like.  THIS IS IMPORTANT.
+    def Signal_like(self):
+        # if self.scalar:
+        #     scalar mode, just return nmigen Signal.like.  THIS IS IMPORTANT.
         # else
-            # simd mode.
+        #     simd mode.
+        pass
 
     # XXX TODO
     def Shape(self, width=1, signed=False):
@@ -155,5 +157,5 @@ class SimdScope:
             # the names are preserved to ensure parameter-compatibility
             # with Shape()
             return SimdShape(self, width=width,   # actually widths_at_elwid
-                                   signed=signed,
-                                   fixed_width=None)
+                             signed=signed,
+                             fixed_width=None)

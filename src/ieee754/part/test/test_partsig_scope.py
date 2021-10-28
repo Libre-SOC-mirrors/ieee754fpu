@@ -26,7 +26,6 @@ def create_simulator(module, traces, test_name):
     return Simulator(module)
 
 
-
 class TestCatMod(Elaboratable):
     def __init__(self, width, elwid, vec_el_counts):
         self.m = Module()
@@ -35,8 +34,8 @@ class TestCatMod(Elaboratable):
             shape2 = SimdShape(s, fixed_width=width*2)
             shape3 = SimdShape(s, fixed_width=width*3)
             self.a = s.Signal(shape)
-            self.b = s.Signal(shape2) # TODO: shape*2
-            self.o = s.Signal(shape3) # TODO: shape*3
+            self.b = s.Signal(shape2)  # TODO: shape*2
+            self.o = s.Signal(shape3)  # TODO: shape*3
         self.cat_out = self.o.sig
 
     def elaborate(self, platform):
@@ -83,11 +82,11 @@ class TestCat(unittest.TestCase):
                     apart, bpart = [], []
                     ajump, bjump = alen // 4, blen // 4
                     for i in range(4):
-                        apart.append((a >> (ajump*i) & ((1<<ajump)-1)))
-                        bpart.append((b >> (bjump*i) & ((1<<bjump)-1)))
+                        apart.append((a >> (ajump*i) & ((1 << ajump)-1)))
+                        bpart.append((b >> (bjump*i) & ((1 << bjump)-1)))
 
-                    print ("apart bpart", hex(a), hex(b),
-                            list(map(hex, apart)), list(map(hex, bpart)))
+                    print("apart bpart", hex(a), hex(b),
+                          list(map(hex, apart)), list(map(hex, bpart)))
 
                     yield module.a.lower().eq(a)
                     yield module.b.lower().eq(b)
@@ -104,22 +103,22 @@ class TestCat(unittest.TestCase):
                     for i in runlengths:
                         # a first
                         for _ in range(i):
-                            print ("runlength", i,
-                                   "ai", ai,
-                                   "apart", hex(apart[ai]),
-                                   "j", j)
+                            print("runlength", i,
+                                  "ai", ai,
+                                  "apart", hex(apart[ai]),
+                                  "j", j)
                             y |= apart[ai] << j
-                            print ("    y", hex(y))
+                            print("    y", hex(y))
                             j += ajump
                             ai += 1
                         # now b
                         for _ in range(i):
-                            print ("runlength", i,
-                                   "bi", bi,
-                                   "bpart", hex(bpart[bi]),
-                                   "j", j)
+                            print("runlength", i,
+                                  "bi", bi,
+                                  "bpart", hex(bpart[bi]),
+                                  "j", j)
                             y |= bpart[bi] << j
-                            print ("    y", hex(y))
+                            print("    y", hex(y))
                             j += bjump
                             bi += 1
 
