@@ -144,20 +144,42 @@ class ElwidPartType:  # TODO decide name
         return self.psig.shape.blankmask
 
 
+# declares priority of the SimdShape
+PRIORITY_FIXED = 0b01
+PRIORITY_ELWID = 0b10
+PRIORITY_BOTH  = 0b11
+
 class SimdShape(Shape):
     """a SIMD variant of Shape. supports:
     * fixed overall width with variable (maxed-out) element lengths
     * fixed element widths with overall size auto-determined
     * both fixed overall width and fixed element widths
 
-    naming is preserved to be compatible with Shape().
+    Documentation / Analysis:
+    https://libre-soc.org/3d_gpu/architecture/dynamic_simd/shape/
+
+    naming is preserved to be compatible with Shape(): the (calculated *or*
+    given) fixed_width is *explicitly* passed through as Shape.width
+    in order to ensure downcasting works as expected.
+
+    a mode flag records what behaviour is required for arithmetic operators.
+    see wiki documentation: it's... complicated.
     """
 
     def __init__(self, scope, width=None,  # this is actually widths_at_elwid
                  signed=False,
                  fixed_width=None):  # fixed overall width
+        # record the mode and scope
         self.scope = scope
         widths_at_elwid = width
+        self.mode_flag = 0
+        # when both of these are set it creates mode_flag=PRIORITY_BOTH
+        # otherwise creates a priority of either FIXED width or ELWIDs
+        if fixed_width is not None:
+            self.mode_flag |= PRIORITY_FIXED
+        if widths_at_elwid is not None:
+            self.mode_flag |= PRIORITY_ELWID
+
         print("SimdShape width", width, "fixed_width", fixed_width)
         # this check is done inside layout but do it again here anyway
         assert fixed_width != None or widths_at_elwid != None, \
