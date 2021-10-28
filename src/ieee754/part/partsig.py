@@ -203,11 +203,29 @@ class SimdShape(Shape):
 
     def __mul__(self, other):
         if isinstance(other, int):
-            lane_shapes = {k: v * other for k, v in self.lane_shapes}
-            # XXX not correct, we need a width-hint, not an overwrite
-            # lane_shapes argument...
-            return SimdShape(self.scope, lane_shapes, signed=self.signed,
-                             fixed_width=self.width * other)
+            # for integer multiply, by a nice coincidence it does not
+            # matter if the LHS is PRIORITY_FIXED or PRIORITY_ELWID.
+            # however the priority has to be preserved.
+            fixed_width = None
+            lane_shapes = None
+
+            # first, check if fixed_width is needed (if originally,
+            # self was constructed with a fixed_width=None we must
+            # *return* another SimdShape with a fixed_width=None)
+            if self.mode_flag & PRIORITY_FIXED:
+                fixed_width = self.width * other
+
+            # likewise for lane elwidths: if, originally, self was constructed
+            # with [widths_at_elwidth==lane_shapes==]width not None,
+            # the return result also has to set up explicit lane_shapes
+            if self.mode_flag & PRIORITY_ELWID:
+                lane_shapes = {k: v * other for k, v in self.lane_shapes}
+
+            # wheww, got everything.
+            return SimdShape(self.scope,              # same scope
+                             width=lane_shapes,       # widths_at_elwid
+                             signed=self.signed,      # same sign
+                             fixed_width=fixed_width) # overall width
         else:
             raise NotImplementedError(
                 f"Multiplying a SimdShape by {type(other)} isn't implemented")
