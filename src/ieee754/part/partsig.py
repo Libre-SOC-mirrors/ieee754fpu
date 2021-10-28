@@ -193,6 +193,25 @@ class SimdShape(Shape):
     def __rmul__(self, other):
         return self.__mul__(other)
 
+    def __add__(self, other):
+        if isinstance(other, int):
+            lane_shapes = {k: v + other for k, v in self.lane_shapes}
+            return SimdShape(self.scope, lane_shapes, signed=self.signed)
+        elif isinstance(other, SimdShape):
+            assert other.scope is self.scope, "scope mismatch"
+            o = other.lane_shapes
+            lane_shapes = {k: v + o[k] for k, v in self.lane_shapes}
+            # XXX not correct, we need a width-hint, not an overwrite
+            # lane_shapes argument...
+            return SimdShape(self.scope, lane_shapes, signed=self.signed,
+                             fixed_width=self.width + other.width)
+        else:
+            raise NotImplementedError(
+                f"Adding a SimdShape to {type(other)} isn't implemented")
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
 
 class SimdSignal(UserValue):
     # XXX ################################################### XXX
