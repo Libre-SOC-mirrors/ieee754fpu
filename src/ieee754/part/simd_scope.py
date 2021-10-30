@@ -50,17 +50,21 @@ class SimdScope:
 
     def __init__(self, module, elwid, vec_el_counts, scalar=False):
 
-        # in SIMD mode, must establish module as part of context and inform
-        # the module to operate under "SIMD" Type 1 (AST) casting rules,
-        # not the # default "Value.cast" rules.
-        if not scalar:
-            self.module = module
-            from ieee754.part.partsig import SimdSignal
-            module._setAstTypeCastFn(SimdSignal.cast)
-
         self.elwid = elwid
         self.vec_el_counts = vec_el_counts
         self.scalar = scalar
+        self.set_module(module)
+
+    def set_module(self, module):
+        # in SIMD mode, must establish module as part of context and inform
+        # the module to operate under "SIMD" Type 1 (AST) casting rules,
+        # not the # default "Value.cast" rules.
+        if self.scalar:
+            return
+        self.module = module
+        from ieee754.part.partsig import SimdSignal
+        if module is not None:
+            module._setAstTypeCastFn(SimdSignal.cast)
 
     def __repr__(self):
         return (f"SimdScope(\n"
