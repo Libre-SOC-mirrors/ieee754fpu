@@ -171,35 +171,45 @@ class SimdShape(Shape):
                  fixed_width=None):  # fixed overall width
         # record the mode and scope
         self.scope = scope
-        widths_at_elwid = width
+        self.fixed_width = fixed_width
+        self.widths_at_elwid = width
         self.mode_flag = 0
         # when both of these are set it creates mode_flag=PRIORITY_BOTH
         # otherwise creates a priority of either FIXED width or ELWIDs
-        if fixed_width is not None:
+        if self.fixed_width is not None:
             self.mode_flag |= PRIORITY_FIXED
-        if widths_at_elwid is not None:
+        if self.widths_at_elwid is not None:
             self.mode_flag |= PRIORITY_ELWID
 
         print("SimdShape width", width, "fixed_width", fixed_width)
         # this check is done inside layout but do it again here anyway
-        assert fixed_width != None or widths_at_elwid != None, \
+        assert self.fixed_width != None or self.widths_at_elwid != None, \
             "both width (widths_at_elwid) and fixed_width cannot be None"
-        (pp, bitp, lpoints, bmask, fixed_width, lane_shapes, part_wid) = \
-            layout(scope.elwid,
-                   scope.vec_el_counts,
-                   widths_at_elwid,
-                   fixed_width)
-        self.partpoints = pp
-        self.bitp = bitp        # binary values for partpoints at each elwidth
-        self.lpoints = lpoints  # layout ranges
-        self.blankmask = bmask  # blanking mask (partitions always padding)
-        self.partwid = part_wid  # smallest alignment start point for elements
-        self.lane_shapes = lane_shapes
+
+        if scope is not None:
+            (pp, bitp, lpoints, bmask, width, lane_shapes, part_wid) = \
+                layout(scope.elwid,
+                       scope.vec_el_counts,
+                       self.widths_at_elwid,
+                       self.fixed_width)
+            self.partpoints = pp
+            self.bitp = bitp        # binary values for partpoints at each elwidth
+            self.lpoints = lpoints  # layout ranges
+            self.blankmask = bmask  # blanking mask (partitions always padding)
+            self.partwid = part_wid  # smallest alignment start point for elements
+            self.lane_shapes = lane_shapes
 
         # pass through the calculated width to Shape() so that when/if
         # objects using this Shape are downcast, they know exactly how to
         # get *all* bits and need know absolutely nothing about SIMD at all
-        Shape.__init__(self, fixed_width, signed)
+        Shape.__init__(self, width, signed)
+
+    @staticmethod
+    def like(cls, shape, *, scope=None):
+        if scope is None:
+            scope = shape.scope
+        return SimdShape(scope, shape.widths_at_elwid, shape.signed,
+                         scope.fixed_width)
 
     def __mul__(self, other):
         if isinstance(other, int):
@@ -303,8 +313,12 @@ class SimdSignal(UserValue):
         if isinstance(mask, SimdScope):  # mask parameter is a SimdScope
             self.scope = mask
             self.ptype = ElwidPartType(self)
-            # adapt shape to a SimdShape
-            if not isinstance(shape, SimdShape):
+            # SimdShapes can be created with an empty scope. check that now
+            if isinstance(shape, SimdScope):
+                if shape.scope is None:
+                    shape = SimdScope.like(shape, scope=self.scope)
+            else:
+                # adapt shape to a SimdShape
                 shape = SimdShape(self.scope, shape, fixed_width=fixed_width)
             self._shape = shape
             self.sig = Signal(shape, *args, **kwargs)

@@ -94,6 +94,8 @@ class SimdScope:
 
     def Signal(self, shape=None, *, name=None, reset=0, reset_less=False,
                attrs=None, decoder=None, src_loc_at=0):
+        assert self.module is not None, \
+             "cannot allocate Signal without a module"
         if self.scalar:
             # scalar mode, just return a nmigen Signal.  THIS IS IMPORTANT.
             # when passing in SimdShape it should go "oh, this is
