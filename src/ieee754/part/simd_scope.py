@@ -66,6 +66,19 @@ class SimdScope:
         if module is not None:
             module._setAstTypeCastFn(SimdSignal.cast)
 
+    def __call__(self, module=None, elwid=None):
+        """use as: newscope = scope(newmodule) or with scope(m) as newscope
+        allows for scope to be established and carry parameters then
+        later copied and used inside an Elaboratable.  a new elwid
+        can be specified so that pipelines can carry properly sync'd
+        elwid signals
+        """
+        if elwid is None:
+            elwid = self.elwid
+        if module is None:
+            module = self.module
+        return SimdScope(module, elwid, self.vec_el_counts, self.scalar)
+
     def __repr__(self):
         return (f"SimdScope(\n"
                 f"        elwid={self.elwid},\n"
