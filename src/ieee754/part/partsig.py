@@ -162,6 +162,10 @@ class SimdShape(Shape):
     given) fixed_width is *explicitly* passed through as Shape.width
     in order to ensure downcasting works as expected.
 
+    the width parameter is exactly what would be expected if this was
+    a Scalar Shape: it can however be given a dictionary of alternative
+    widths on a per-elwid basis.
+
     a mode flag records what behaviour is required for arithmetic operators.
     see wiki documentation: it's... complicated.
     """
@@ -286,6 +290,8 @@ class SimdShape(Shape):
             lane_shapes = {k: v + other for k, v in self.lane_shapes}
             return SimdShape(self.scope, lane_shapes, signed=self.signed)
         elif isinstance(other, SimdShape):
+            # XXX MO, must be equivalent, not the same object.
+            # requires an eq override just like in Shape.
             assert other.scope is self.scope, "scope mismatch"
             o = other.lane_shapes
             lane_shapes = {k: v + o[k] for k, v in self.lane_shapes}
