@@ -721,3 +721,7 @@ class SimdSignal(UserValue):
     # TODO, http://bugs.libre-riscv.org/show_bug.cgi?id=713
     def shape(self):
         return self.sig.shape()
+
+
+# temporary to allow tracking back through git revision history
+PartitionedSignal = SimdSignal
