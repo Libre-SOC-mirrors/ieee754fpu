@@ -58,9 +58,11 @@ build:
         - git apply ../softposit_sfpy_build.patch
         - git apply "$IEEE754FPU_PATH"/SoftPosit.patch
         - popd
+        - ln -s `which python3` ~/.local/bin/python
         - make lib -j$(nproc)
         - make cython -j$(nproc)
         - make wheel -j$(nproc)
+        - rm ~/.local/bin/python
         - python3 -m pip install --user dist/sfpy*.whl
         - popd
 
