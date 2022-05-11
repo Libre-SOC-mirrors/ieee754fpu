@@ -1,6 +1,6 @@
 from nmigen import Module, Signal
 from nmigen.back.pysim import Simulator, Passive
-from nmigen.test.utils import FHDLTestCase
+from nmutil.formaltest import FHDLTestCase
 from nmigen.cli import rtlil
 from sfpy import Float32
 

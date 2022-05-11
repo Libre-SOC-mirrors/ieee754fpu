@@ -3,7 +3,7 @@
 
 from nmigen import Module, Signal, Elaboratable, Mux, Cat
 from nmigen.asserts import Assert, AnyConst
-from nmigen.test.utils import FHDLTestCase
+from nmutil.formaltest import FHDLTestCase
 from nmigen.cli import rtlil
 
 from ieee754.part_mul_add.partpoints import PartitionPoints

@@ -5,12 +5,13 @@ from operator import add
 from nmigen import Module, Signal
 from nmigen.compat.sim import run_simulation
 
-from fadd_state import FPADD
+from ieee754.fpadd.fadd_state import FPADD
 
-from unit_test_single import (get_mantissa, get_exponent, get_sign, is_nan,
-                                is_inf, is_pos_inf, is_neg_inf,
-                                match, get_case, check_case, run_fpunit,
-                                run_edge_cases, run_corner_cases)
+from ieee754.fpcommon.test.unit_test_single import (
+    get_mantissa, get_exponent, get_sign, is_nan,
+    is_inf, is_pos_inf, is_neg_inf,
+    match, get_case, check_case, run_fpunit,
+    run_edge_cases, run_corner_cases)
 
 def testbench(dut):
     yield from check_case(dut, 0xFFFFFFFF, 0xC63B800A, 0xFFC00000)

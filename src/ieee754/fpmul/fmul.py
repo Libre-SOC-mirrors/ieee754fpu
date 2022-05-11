@@ -3,7 +3,7 @@ from nmigen.cli import main, verilog
 
 from ieee754.fpcommon.fpbase import (FPNumIn, FPNumOut, FPOpIn,
                                      FPOpOut, Overflow, FPBase, FPState)
-from ieee754.fpcommon.getop import FPGetOp
+#from ieee754.fpcommon.getop import FPGetOp
 from nmutil.nmoperator import eq
 
 

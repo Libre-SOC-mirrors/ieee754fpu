@@ -3,7 +3,7 @@ from nmigen import Module, Signal
 from nmigen.compat.sim import run_simulation
 from nmigen.cli import verilog, rtlil
 
-from inputgroup import InputGroup
+from ieee754.add.inputgroup import InputGroup
 
 
 def testbench(dut):

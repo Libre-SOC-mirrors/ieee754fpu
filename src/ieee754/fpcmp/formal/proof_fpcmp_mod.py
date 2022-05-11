@@ -3,7 +3,7 @@
 
 from nmigen import Module, Signal, Elaboratable, Mux
 from nmigen.asserts import Assert, AnyConst
-from nmigen.test.utils import FHDLTestCase
+from nmutil.formaltest import FHDLTestCase
 
 from ieee754.fpcommon.fpbase import FPNumDecode, FPNumBaseRecord
 from ieee754.fpcmp.fpcmp import FPCMPPipeMod

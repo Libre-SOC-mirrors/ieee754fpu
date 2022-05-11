@@ -1,6 +1,6 @@
 from nmigen import Module, Signal
 from nmigen.back.pysim import Simulator, Delay, Settle
-from nmigen.test.utils import FHDLTestCase
+from nmutil.formaltest import FHDLTestCase
 from ieee754.part_mul_add.partpoints import PartitionPoints
 
 from ieee754.part_shift.part_shift_scalar import \

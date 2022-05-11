@@ -1,6 +1,6 @@
 from nmigen import Module, Signal
 from nmigen.back.pysim import Simulator, Delay
-from nmigen.test.utils import FHDLTestCase
+from nmutil.formaltest import FHDLTestCase
 
 from ieee754.cordic.sin_cos import CORDIC
 from python_sin_cos import run_cordic
