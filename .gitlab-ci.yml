@@ -113,4 +113,4 @@ build:
 
         - python3 setup.py develop
 
-        - pytest -n auto src/ieee754
+        - pytest
