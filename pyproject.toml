@@ -1,0 +1,22 @@
+[tool.pytest.ini_options]
+minversion = "6.0"
+python_classes = ""
+python_functions = ""
+testpaths = ["src/ieee754"]
+required_plugins = ["pytest-xdist>=1.0.0"]
+addopts = [
+    "-n",
+    "auto",
+    "--ignore",
+    "src/ieee754/add/test_dual.py",
+    "--ignore",
+    "src/ieee754/add/test_fpnum.py",
+    "--ignore",
+    "src/ieee754/fcvt/test/test_fcvt_pipe_64_32.py",
+    "--ignore",
+    "src/ieee754/fpadd/test/test_add16.py",
+    "--ignore",
+    "src/ieee754/fpadd/test/test_add64.py",
+    "--ignore",
+    "src/ieee754/fpadd/test/test_add_base.py",
+]

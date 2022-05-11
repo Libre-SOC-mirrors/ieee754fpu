@@ -1,3 +1,4 @@
+# FIXME: This file is on the pytest ignore list in pyproject.toml because it has borked imports
 from sfpy import Float32
 from nmigen.compat.sim import run_simulation
 from dual_add_experiment import ALU

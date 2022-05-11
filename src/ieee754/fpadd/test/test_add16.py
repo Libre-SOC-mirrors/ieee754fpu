@@ -1,3 +1,4 @@
+# FIXME: This file is on the pytest ignore list in pyproject.toml because it has borked imports
 from operator import add
 
 from nmigen import Module, Signal

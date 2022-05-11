@@ -1,3 +1,4 @@
+# FIXME: This file is on the pytest ignore list in pyproject.toml because it has borked imports
 from nmigen import Module, Signal
 from nmigen.compat.sim import run_simulation
 from operator import add
