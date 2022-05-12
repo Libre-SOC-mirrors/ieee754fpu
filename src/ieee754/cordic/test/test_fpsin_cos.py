@@ -89,6 +89,9 @@ class SinCosTestCase(FHDLTestCase):
         x = Float32(1/2)
         self.run_test_assert(x, bits=32)
 
+    @unittest.skip("FIXME: test takes too long, create Simulation once and "
+                   "test all cases rather than creating a Simulation for "
+                   "each case")
     def test_rand(self):
         for i in range(10000):
             z = 2*i/10000 - 1

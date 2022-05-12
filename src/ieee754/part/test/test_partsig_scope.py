@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # See Notices.txt for copyright information
 
-from nmigen import Signal, Module, Elaboratable, Mux, Cat, Shape, Repl
+from nmigen import Signal, Module, Elaboratable, Mux, Cat, Shape, Repl, Value
 from nmigen.back.pysim import Simulator, Delay, Settle
 from nmigen.cli import rtlil
 
@@ -47,6 +47,7 @@ class TestCatMod(Elaboratable):
         return m
 
 
+@unittest.skipUnless(hasattr(Value, "__Cat__"), "missing nmigen simd support")
 class TestCat(unittest.TestCase):
     def test(self):
         width = 16

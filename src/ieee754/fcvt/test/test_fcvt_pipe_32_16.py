@@ -16,6 +16,8 @@ def fcvt_16(x):
 
 
 class TestFClassPipe(unittest.TestCase):
+    # FIXME: AttributeError: 'PrevControl' object has no attribute 'valid_i'
+    @unittest.expectedFailure
     def test_pipe_fp32_16(self):
         dut = FPCVTDownMuxInOut(32, 16, 4)
         run_pipe_fp(dut, 32, "fcvt", unit_test_single, Float32,

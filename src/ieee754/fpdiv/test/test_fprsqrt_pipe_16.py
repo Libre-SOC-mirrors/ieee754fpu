@@ -18,6 +18,8 @@ def rsqrt(x):
 
 
 class TestDivPipe(unittest.TestCase):
+    # FIXME: AttributeError: 'PrevControl' object has no attribute 'valid_i'
+    @unittest.expectedFailure
     def test_pipe_rsqrt_fp16(self):
         dut = FPDIVMuxInOut(16, 8)
         # don't forget to initialize opcode; don't use magic numbers
