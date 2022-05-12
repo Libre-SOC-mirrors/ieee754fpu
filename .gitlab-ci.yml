@@ -37,16 +37,21 @@ build:
             python3-keyring
             python3-pip
             python3-setuptools
+            python3-venv
             python3-wheel
             tcl-dev
-        - export PATH="$HOME/.local/bin:/usr/lib/ccache:$PATH"
+        - export PATH="/usr/lib/ccache:$PATH"
         - export CCACHE_BASEDIR="$PWD"
         - export CCACHE_DIR="$PWD/ccache"
         - export CCACHE_COMPILERCHECK=content
         - ccache --zero-stats || true
         - ccache --show-stats || true
-        - python3 -m pip install --user pytest-xdist twine cython
+        - python3 -m venv --system-site-packages .venv
+        - . .venv/bin/activate
+        - pip install pytest-xdist twine cython
     script:
+        - . .venv/bin/activate
+
         - IEEE754FPU_PATH="$(pwd)"
         - git clone --depth 1 --recursive -b v0.6.0 https://github.com/billzorn/sfpy.git sfpy
         - pushd sfpy
@@ -57,12 +62,10 @@ build:
         - git apply ../softposit_sfpy_build.patch
         - git apply "$IEEE754FPU_PATH"/SoftPosit.patch
         - popd
-        - ln -s `which python3` ~/.local/bin/python
         - make lib -j$(nproc)
         - make cython -j$(nproc)
         - make wheel -j$(nproc)
-        - rm ~/.local/bin/python
-        - python3 -m pip install --user dist/sfpy*.whl
+        - pip install --force-reinstall dist/sfpy*.whl
         - popd
 
         - git clone --depth 1 -b yosys-0.17 https://github.com/YosysHQ/yosys.git yosys
