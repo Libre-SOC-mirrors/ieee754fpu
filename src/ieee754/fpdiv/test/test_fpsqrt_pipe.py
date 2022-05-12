@@ -1,7 +1,7 @@
 """ test of FPDIVMuxInOut
 """
 
-from ieee754.fpdiv.pipeline import (FPDIVMuxInOut,)
+from ieee754.fpdiv.pipeline import FPDIVMuxInOut
 from ieee754.fpcommon.test.fpmux import runfp
 from ieee754.div_rem_sqrt_rsqrt.core import DivPipeCoreOperation
 

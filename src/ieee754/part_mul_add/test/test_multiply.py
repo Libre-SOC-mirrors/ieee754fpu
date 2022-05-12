@@ -3,9 +3,9 @@
 # See Notices.txt for copyright information
 
 from ieee754.part_mul_add.multiply import \
-                            (PartitionPoints, PartitionedAdder, AddReduce,
-                            Mul8_16_32_64, OP_MUL_LOW, OP_MUL_SIGNED_HIGH,
-                            OP_MUL_SIGNED_UNSIGNED_HIGH, OP_MUL_UNSIGNED_HIGH)
+    (PartitionPoints, PartitionedAdder, AddReduce,
+     Mul8_16_32_64, OP_MUL_LOW, OP_MUL_SIGNED_HIGH,
+     OP_MUL_SIGNED_UNSIGNED_HIGH, OP_MUL_UNSIGNED_HIGH)
 from nmigen import Signal, Module
 from nmigen.back.pysim import Simulator, Delay, Tick, Passive
 from nmigen.hdl.ast import Assign, Value
@@ -370,11 +370,12 @@ def simd_mul(a, b, lanes):
         shift += lane.bit_width
     return output, intermediate_output
 
+
 class TestMul8_16_32_64(unittest.TestCase):
 
     @staticmethod
     def get_tst_cases(lanes: List[SIMDMulLane],
-                       keys: Iterable[int]) -> Iterable[Tuple[int, int]]:
+                      keys: Iterable[int]) -> Iterable[Tuple[int, int]]:
         mask = (1 << 64) - 1
         for i in range(8):
             hash_input = f"{i} {lanes} {list(keys)}"
@@ -732,6 +733,7 @@ class TestMul8_16_32_64(unittest.TestCase):
 
     def test_0_10(self) -> None:
         self.subtest_register_levels([0, 10])
+
 
 if __name__ == '__main__':
     unittest.main()

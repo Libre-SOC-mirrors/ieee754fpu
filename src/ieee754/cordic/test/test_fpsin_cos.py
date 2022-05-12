@@ -70,7 +70,7 @@ class SinCosTestCase(FHDLTestCase):
 
         sim.add_sync_process(process)
         with sim.write_vcd("fpsin_cos.vcd", "fpsin_cos.gtkw", traces=[
-                 cos, sin, ready, start]):
+                cos, sin, ready, start]):
             sim.run()
 
     def run_test_assert(self, z, bits=64):
@@ -97,6 +97,7 @@ class SinCosTestCase(FHDLTestCase):
 
     def get_frac(self, value, bits):
         return value/(1 << bits)
+
 
 if __name__ == "__main__":
     unittest.main()

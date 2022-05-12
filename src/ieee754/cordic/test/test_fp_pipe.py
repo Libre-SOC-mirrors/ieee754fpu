@@ -32,7 +32,7 @@ class SinCosTestCase(FHDLTestCase):
             dut.p.data_i.a.eq(z),
             dut.p.valid_i.eq(z_valid),
             dut.n.ready_i.eq(ready),
-            ]
+        ]
 
         sim = Simulator(m)
         sim.add_clock(1e-6)
@@ -45,12 +45,13 @@ class SinCosTestCase(FHDLTestCase):
                 yield
             for i in range(40):
                 yield
+
         def reader_process():
             counter = 200
             while True:
                 counter -= 1
-                if counter == 0: # some indication of progress
-                    print (".", sep="", end="", flush=True)
+                if counter == 0:  # some indication of progress
+                    print(".", sep="", end="", flush=True)
                     counter = 200
                 yield
                 vld = yield dut.n.valid_o
@@ -70,7 +71,7 @@ class SinCosTestCase(FHDLTestCase):
                     except StopIteration:
                         break
 
-            print() # newline after end of progress-indicator
+            print()  # newline after end of progress-indicator
 
         sim.add_sync_process(writer_process)
         sim.add_sync_process(reader_process)

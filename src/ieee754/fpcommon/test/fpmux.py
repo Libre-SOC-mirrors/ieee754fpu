@@ -13,8 +13,8 @@ from nmigen.cli import verilog, rtlil
 
 class MuxInOut:
     def __init__(self, dut, width, fpkls, fpop, vals, single_op, opcode,
-                       cancel=False, feedback_width=None):
-        self.cancel = cancel # allow (test) cancellation
+                 cancel=False, feedback_width=None):
+        self.cancel = cancel  # allow (test) cancellation
         self.dut = dut
         self.fpkls = fpkls
         self.fpop = fpop
@@ -53,7 +53,7 @@ class MuxInOut:
                 if hasattr(res, "bits"):
                     self.do[muxid_out][i] = res.bits
                 else:
-                    self.do[muxid_out][i] = res # for FP to INT
+                    self.do[muxid_out][i] = res  # for FP to INT
 
     def send(self, muxid):
         rs = self.dut.p[muxid]
@@ -70,7 +70,7 @@ class MuxInOut:
                 yield rs.data_i.b.eq(op2)
             yield rs.data_i.muxid.eq(muxid)
             if hasattr(rs, "mask_i"):
-                yield rs.mask_i.eq(1) # TEMPORARY HACK
+                yield rs.mask_i.eq(1)  # TEMPORARY HACK
             yield
             o_p_ready = yield rs.ready_o
             while not o_p_ready:
@@ -85,19 +85,19 @@ class MuxInOut:
                 else:
                     r = res
                 print("send", muxid, i, hex(op1), hex(r),
-                              fop1, res)
+                      fop1, res)
             else:
                 fop1 = self.fpkls(op1)
                 fop2 = self.fpkls(op2)
                 res = self.fpop(fop1, fop2)
                 print("send", muxid, i, hex(op1), hex(op2), hex(res.bits),
-                              fop1, fop2, res)
+                      fop1, fop2, res)
 
             self.sent[muxid].append(i)
 
             yield rs.valid_i.eq(0)
             if hasattr(rs, "mask_i"):
-                yield rs.mask_i.eq(0) # TEMPORARY HACK
+                yield rs.mask_i.eq(0)  # TEMPORARY HACK
             # wait until it's received
             while i in self.sent[muxid]:
                 yield
@@ -111,14 +111,14 @@ class MuxInOut:
 
         print("send ended", muxid)
 
-        ## wait random period of time before queueing another value
-        #for i in range(randint(0, 3)):
+        # wait random period of time before queueing another value
+        # for i in range(randint(0, 3)):
         #    yield
 
         #send_range = randint(0, 3)
-        #if send_range == 0:
+        # if send_range == 0:
         #    send = True
-        #else:
+        # else:
         #    send = randint(0, send_range) != 0
 
     def rcv(self, muxid):
@@ -129,16 +129,16 @@ class MuxInOut:
             cancel = self.cancel and (randint(0, 2) == 0)
             if hasattr(rs, "mask_i") and len(self.sent[muxid]) > 0 and cancel:
                 todel = self.sent[muxid].pop()
-                print ("to delete", muxid, self.sent[muxid], todel)
+                print("to delete", muxid, self.sent[muxid], todel)
                 if todel in self.do[muxid]:
                     del self.do[muxid][todel]
                     yield rs.stop_i.eq(1)
-                print ("left", muxid, self.do[muxid])
+                print("left", muxid, self.do[muxid])
                 if len(self.do[muxid]) == 0:
                     break
 
             #stall_range = randint(0, 3)
-            #for j in range(randint(1,10)):
+            # for j in range(randint(1,10)):
             #    stall = randint(0, stall_range) != 0
             #    yield self.dut.n[0].ready_i.eq(stall)
             #    yield
@@ -146,7 +146,7 @@ class MuxInOut:
             yield n.ready_i.eq(1)
             yield
             if hasattr(rs, "mask_i"):
-                yield rs.stop_i.eq(0) # resets cancel mask
+                yield rs.stop_i.eq(0)  # resets cancel mask
 
             o_n_valid = yield n.valid_o
             i_n_ready = yield n.ready_i
@@ -157,7 +157,7 @@ class MuxInOut:
             out_z = yield n.data_o.z
 
             if not self.sent[muxid]:
-                print ("cancelled/recv", muxid, hex(out_z))
+                print("cancelled/recv", muxid, hex(out_z))
                 continue
 
             out_i = self.sent[muxid].pop()
@@ -171,7 +171,7 @@ class MuxInOut:
 
             assert self.do[muxid][out_i] == out_z
 
-            print ("senddel", muxid, out_i, self.sent[muxid])
+            print("senddel", muxid, out_i, self.sent[muxid])
             del self.do[muxid][out_i]
 
             # check if there's any more outputs
@@ -219,9 +219,9 @@ def create_random(num_rows, width, single_op=False, n_vals=10):
                 #op1 = 0x3449f9a9
                 #op1 = 0x1ba94baa
 
-                #if i % 2:
+                # if i % 2:
                 #    op1 = 0x0001
-                #else:
+                # else:
                 #    op1 = 0x3C00
 
                 # FRSQRT

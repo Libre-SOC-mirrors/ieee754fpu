@@ -1,7 +1,7 @@
 """ test of FPDIVMuxInOut
 """
 
-from ieee754.fpdiv.pipeline import (FPDIVMuxInOut,)
+from ieee754.fpdiv.pipeline import FPDIVMuxInOut
 from ieee754.fpcommon.test.case_gen import run_pipe_fp
 from ieee754.fpcommon.test import unit_test_half
 from ieee754.fpdiv.test.div_data16 import regressions

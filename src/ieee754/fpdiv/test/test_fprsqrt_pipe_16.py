@@ -1,7 +1,7 @@
 """ test of FPDIVMuxInOut
 """
 
-from ieee754.fpdiv.pipeline import (FPDIVMuxInOut,)
+from ieee754.fpdiv.pipeline import FPDIVMuxInOut
 from ieee754.fpcommon.test.case_gen import run_pipe_fp
 from ieee754.fpcommon.test import unit_test_half
 #from ieee754.fpdiv.test.rsqrt_data16 import regressions
@@ -24,6 +24,7 @@ class TestDivPipe(unittest.TestCase):
         opcode = int(DivPipeCoreOperation.RSqrtRem)
         run_pipe_fp(dut, 16, "rsqrt16", unit_test_half, Float16, None,
                     rsqrt, 100, single_op=True, opcode=opcode)
+
 
 if __name__ == '__main__':
     unittest.main()
