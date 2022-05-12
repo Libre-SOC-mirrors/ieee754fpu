@@ -48,8 +48,7 @@ build:
         - python3 -m pip install --user pytest-xdist twine cython
     script:
         - IEEE754FPU_PATH="$(pwd)"
-        - git clone --depth 1 --recursive https://github.com/billzorn/sfpy.git sfpy
-        - git rev-parse HEAD
+        - git clone --depth 1 --recursive -b v0.6.0 https://github.com/billzorn/sfpy.git sfpy
         - pushd sfpy
         - pushd berkeley-softfloat-3
         - git apply "$IEEE754FPU_PATH"/berkeley-softfloat.patch
@@ -66,33 +65,30 @@ build:
         - python3 -m pip install --user dist/sfpy*.whl
         - popd
 
-        - git clone --depth 1 https://github.com/YosysHQ/yosys.git yosys
+        - git clone --depth 1 -b yosys-0.17 https://github.com/YosysHQ/yosys.git yosys
         - pushd yosys
-        - git rev-parse HEAD
         - make config-gcc
         - make -j$(nproc)
         - make install
         - popd
         - yosys -V
 
-        - git clone --depth 1 https://github.com/YosysHQ/SymbiYosys.git SymbiYosys
+        - git clone https://github.com/YosysHQ/SymbiYosys.git SymbiYosys
         - pushd SymbiYosys
-        - git rev-parse HEAD
+        - git checkout d10e472edf4ea9be3aa6347b264ba575fbea933a
         - make install
         - popd
 
-        - git clone --depth 1 https://github.com/SRI-CSL/yices2.git yices2
+        - git clone --depth 1 -b Yices-2.6.4 https://github.com/SRI-CSL/yices2.git yices2
         - pushd yices2
-        - git rev-parse HEAD
         - autoconf
         - ./configure
         - make -j$(nproc)
         - make install
         - popd
 
-        - git clone --depth 1 https://github.com/Z3Prover/z3.git z3
+        - git clone --depth 1 -b z3-4.8.17 https://github.com/Z3Prover/z3.git z3
         - pushd z3
-        - git rev-parse HEAD
         - python scripts/mk_make.py
         - cd build
         - make -j$(nproc)
