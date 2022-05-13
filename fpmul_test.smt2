@@ -287,11 +287,18 @@
         (f32_into_qnan a)
         (ite (f32_is_nan b)
             (f32_into_qnan b)
-            (ite (or (f32_is_infinite a) (f32_is_infinite b))
-                (f32_infinity (bvxor (f32_sign_field a) (f32_sign_field b)))
-                (ite (or (f32_is_zero a) (f32_is_zero b))
-                    (f32_zero (bvxor (f32_sign_field a) (f32_sign_field b)))
-                    (f32_mul_nonzero_finite_rne a b)
+            (ite
+                (or
+                    (and (f32_is_zero a) (f32_is_infinite b))
+                    (and (f32_is_infinite a) (f32_is_zero b))
+                )
+                #x7FC00000
+                (ite (or (f32_is_infinite a) (f32_is_infinite b))
+                    (f32_infinity (bvxor (f32_sign_field a) (f32_sign_field b)))
+                    (ite (or (f32_is_zero a) (f32_is_zero b))
+                        (f32_zero (bvxor (f32_sign_field a) (f32_sign_field b)))
+                        (f32_mul_nonzero_finite_rne a b)
+                    )
                 )
             )
         )
