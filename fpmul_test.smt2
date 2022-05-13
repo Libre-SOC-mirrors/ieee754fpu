@@ -259,11 +259,9 @@
                     ; subnormals:
                     (f32_round_product_rne
                         sign
-                        (bvadd
-                            (bv48_lshr_merging
-                                norm_product
-                                (f32_sexp_to_bv48 subnormal_shift)
-                            )
+                        (bv48_lshr_merging
+                            norm_product
+                            (f32_sexp_to_bv48 subnormal_shift)
                         )
                         f32_subnormal_exponent
                         #x00
