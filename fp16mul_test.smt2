@@ -6,7 +6,7 @@
 ; all the effort to add support in yosys and nmigen for smtlib2 reals and
 ; floating-point numbers.
 
-; run with: z3 -smt2 fpmul_test.smt2
+; run with: z3 -smt2 fp16mul_test.smt2
 
 ; create some handy type aliases
 (define-sort bv1 () (_ BitVec 1))
