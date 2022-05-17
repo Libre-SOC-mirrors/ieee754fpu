@@ -7,6 +7,7 @@
 ; floating-point numbers.
 
 ; run with: z3 -smt2 fp16mul_test.smt2
+(set-logic ALL)
 
 ; create some handy type aliases
 (define-sort bv1 () (_ BitVec 1))
