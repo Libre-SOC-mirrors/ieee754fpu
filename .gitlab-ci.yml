@@ -68,17 +68,18 @@ build:
         - pip install --force-reinstall dist/sfpy*.whl
         - popd
 
-        - git clone --depth 1 -b yosys-0.17 https://github.com/YosysHQ/yosys.git yosys
+        - git clone --depth 1 -b smtlib2-expr-support-on-0.13 https://git.libre-soc.org/git/yosys.git yosys
         - pushd yosys
+        - git rev-parse HEAD
         - make config-gcc
         - make -j$(nproc)
         - make install
         - popd
         - yosys -V
 
-        - git clone https://github.com/YosysHQ/SymbiYosys.git SymbiYosys
-        - pushd SymbiYosys
-        - git checkout d10e472edf4ea9be3aa6347b264ba575fbea933a
+        - git clone https://git.libre-soc.org/git/SymbiYosys.git sby
+        - pushd sby
+        - git checkout db740839b737ee55b8b39f1b29780872d32d248a
         - make install
         - popd
 
@@ -98,7 +99,7 @@ build:
         - make install
         - popd
 
-        - git clone --depth 1 https://gitlab.com/nmigen/nmigen.git nmigen
+        - git clone --depth 1 -b smtlib2-expr-support https://gitlab.com/programmerjake/nmigen.git nmigen
         - pushd nmigen
         - git rev-parse HEAD
         - python3 setup.py develop
