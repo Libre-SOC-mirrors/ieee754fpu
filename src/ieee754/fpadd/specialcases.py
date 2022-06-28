@@ -80,11 +80,15 @@ class FPAddSpecialCasesMod(PipeModBase):
 
         # prepare inf/zero/nans
         z_zero = FPNumBaseRecord(width, False, name="z_zero")
-        z_nan = FPNumBaseRecord(width, False, name="z_nan")
+        z_default_nan = FPNumBaseRecord(width, False, name="z_default_nan")
+        z_quieted_a = FPNumBaseRecord(width, False, name="z_quieted_a")
+        z_quieted_b = FPNumBaseRecord(width, False, name="z_quieted_b")
         z_infa = FPNumBaseRecord(width, False, name="z_infa")
         z_infb = FPNumBaseRecord(width, False, name="z_infb")
         comb += z_zero.zero(0)
-        comb += z_nan.nan(0)
+        comb += z_default_nan.nan(0)
+        comb += z_quieted_a.quieted_nan(a1)
+        comb += z_quieted_b.quieted_nan(b1)
         comb += z_infa.inf(a1.s)
         comb += z_infb.inf(b1.s)
 
@@ -93,6 +97,8 @@ class FPAddSpecialCasesMod(PipeModBase):
 
         # this is the logic-decision-making for special-cases:
         # if a is NaN or b is NaN return NaN
+        #   if a is NaN return quieted_nan(a)
+        #   else return quieted_nan(b)
         # elif a is inf return inf (or NaN)
         #   if a is inf and signs don't match return NaN
         #   else return inf(a)
@@ -112,8 +118,8 @@ class FPAddSpecialCasesMod(PipeModBase):
         oz = Mux(t_a1zero, b1.v, oz)
         oz = Mux(t_abz, Cat(self.i.b[:-1], absa), oz)
         oz = Mux(t_b1inf, z_infb.v, oz)
-        oz = Mux(t_a1inf, Mux(bexp128s, z_nan.v, z_infa.v), oz)
-        oz = Mux(t_abnan, z_nan.v, oz)
+        oz = Mux(t_a1inf, Mux(bexp128s, z_default_nan.v, z_infa.v), oz)
+        oz = Mux(t_abnan, Mux(a1.is_nan, z_quieted_a.v, z_quieted_b.v), oz)
 
         comb += self.o.oz.eq(oz)
 

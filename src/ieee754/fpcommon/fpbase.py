@@ -425,6 +425,12 @@ class FPNumBaseRecord:
     def nan(self, s):
         return self.create(*self._nan(s))
 
+    def quieted_nan(self, other):
+        assert isinstance(other, FPNumBaseRecord)
+        assert self.width == other.width
+        return self.create(other.s, self.fp.P128,
+                           other.v[0:self.e_start] | (1 << (self.e_start - 1)))
+
     def inf(self, s):
         return self.create(*self._inf(s))
 

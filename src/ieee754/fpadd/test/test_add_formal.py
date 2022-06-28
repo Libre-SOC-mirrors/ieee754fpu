@@ -2,7 +2,7 @@ import unittest
 from nmutil.formaltest import FHDLTestCase
 from ieee754.fpadd.pipeline import FPADDBasePipe
 from nmigen.hdl.dsl import Module
-from nmigen.hdl.ast import AnySeq, Initial, Assert, AnyConst, Signal, Assume
+from nmigen.hdl.ast import Initial, Assert, AnyConst, Signal, Assume
 from nmigen.hdl.smtlib2 import SmtFloatingPoint, SmtSortFloatingPoint, \
     SmtSortFloat16, SmtSortFloat32, SmtSortFloat64, \
     ROUND_NEAREST_TIES_TO_EVEN
@@ -27,17 +27,25 @@ class TestFAddFormal(FHDLTestCase):
         z_fp = SmtFloatingPoint.from_bits(z, sort=sort)
         expected_fp = a_fp.add(b_fp, rm=rm)
         expected = Signal(width)
-        m.d.comb += expected.eq(AnySeq(width))
-        # Important Note: expected and z won't necessarily match bit-exactly
-        # if it's a NaN, all this checks for is z is also any NaN
-        m.d.comb += Assume((SmtFloatingPoint.from_bits(expected, sort=sort)
-                            == expected_fp).as_value())
-        # FIXME: check that it produces the correct NaNs
+        m.d.comb += expected.eq(AnyConst(width))
+        quiet_bit = 1 << (sort.mantissa_field_width - 1)
+        nan_exponent = ((1 << sort.eb) - 1) << sort.mantissa_field_width
+        with m.If(expected_fp.is_nan().as_value()):
+            with m.If(a_fp.is_nan().as_value()):
+                m.d.comb += Assume(expected == (a | quiet_bit))
+            with m.Elif(b_fp.is_nan().as_value()):
+                m.d.comb += Assume(expected == (b | quiet_bit))
+            with m.Else():
+                m.d.comb += Assume(expected == (nan_exponent | quiet_bit))
+        with m.Else():
+            m.d.comb += Assume(SmtFloatingPoint.from_bits(expected, sort=sort)
+                               .same(expected_fp).as_value())
         m.d.comb += a.eq(AnyConst(width))
         m.d.comb += b.eq(AnyConst(width))
         with m.If(dut.n.trigger):
-            m.d.sync += Assert((z_fp == expected_fp).as_value())
-        self.assertFormal(m, depth=5, solver="z3")
+            m.d.sync += Assert(z_fp.same(expected_fp).as_value())
+            m.d.sync += Assert(z == expected)
+        self.assertFormal(m, depth=5, solver="bitwuzla")
 
     # FIXME: check other rounding modes
     # FIXME: check exception flags
