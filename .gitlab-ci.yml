@@ -99,6 +99,18 @@ build:
         - make install
         - popd
 
+        - git clone https://github.com/bitwuzla/bitwuzla.git bitwuzla
+        - pushd bitwuzla
+        - git checkout 19dd987a6e246990619751cca07996fac505fd0b
+        - ./contrib/setup-btor2tools.sh
+        - ./contrib/setup-symfpu.sh
+        - ./contrib/setup-cadical.sh
+        - ./configure.sh
+        - cd build
+        - make -j$(nproc)
+        - make install
+        - popd
+
         - git clone --depth 1 -b smtlib2-expr-support https://gitlab.com/programmerjake/nmigen.git nmigen
         - pushd nmigen
         - git rev-parse HEAD
