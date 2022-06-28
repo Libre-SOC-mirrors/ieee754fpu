@@ -53,7 +53,6 @@ class TestFAddFormal(FHDLTestCase):
     def test_fadd16_rne_formal(self):
         self.tst_fadd_rne_formal(SmtSortFloat16())
 
-    @unittest.skip("too slow")
     def test_fadd32_rne_formal(self):
         self.tst_fadd_rne_formal(SmtSortFloat32())
 
