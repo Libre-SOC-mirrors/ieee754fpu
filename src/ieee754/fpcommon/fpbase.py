@@ -322,42 +322,42 @@ class FPFormat:
     def is_zero(self, x):
         """ returns true if x is +/- zero
         """
-        return (self.get_exponent(x) == self.e_sub and
-                self.get_mantissa_field(x) == 0)
+        return (self.get_exponent(x) == self.e_sub) & \
+            (self.get_mantissa_field(x) == 0)
 
     def is_subnormal(self, x):
         """ returns true if x is subnormal (exp at minimum)
         """
-        return (self.get_exponent(x) == self.e_sub and
-                self.get_mantissa_field(x) != 0)
+        return (self.get_exponent(x) == self.e_sub) & \
+            (self.get_mantissa_field(x) != 0)
 
     def is_inf(self, x):
         """ returns true if x is infinite
         """
-        return (self.get_exponent(x) == self.e_max and
-                self.get_mantissa_field(x) == 0)
+        return (self.get_exponent(x) == self.e_max) & \
+            (self.get_mantissa_field(x) == 0)
 
     def is_nan(self, x):
         """ returns true if x is a nan (quiet or signalling)
         """
-        return (self.get_exponent(x) == self.e_max and
-                self.get_mantissa_field(x) != 0)
+        return (self.get_exponent(x) == self.e_max) & \
+            (self.get_mantissa_field(x) != 0)
 
     def is_quiet_nan(self, x):
         """ returns true if x is a quiet nan
         """
-        highbit = 1<<(self.m_width-1)
-        return (self.get_exponent(x) == self.e_max and
-                self.get_mantissa_field(x) != 0 and
-                self.get_mantissa_field(x) & highbit != 0)
+        highbit = 1 << (self.m_width - 1)
+        return (self.get_exponent(x) == self.e_max) & \
+            (self.get_mantissa_field(x) != 0) & \
+            (self.get_mantissa_field(x) & highbit != 0)
 
     def is_nan_signaling(self, x):
         """ returns true if x is a signalling nan
         """
-        highbit = 1<<(self.m_width-1)
-        return ((self.get_exponent(x) == self.e_max) and
-                (self.get_mantissa_field(x) != 0) and
-                (self.get_mantissa_field(x) & highbit) == 0)
+        highbit = 1 << (self.m_width - 1)
+        return (self.get_exponent(x) == self.e_max) & \
+            (self.get_mantissa_field(x) != 0) & \
+            (self.get_mantissa_field(x) & highbit) == 0
 
     @property
     def width(self):

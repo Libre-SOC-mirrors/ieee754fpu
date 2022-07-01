@@ -5,11 +5,29 @@
 from nmigen import Module, Signal, Cat, Mux
 
 from nmutil.pipemodbase import PipeModBase, PipeModBaseChain
-from ieee754.fpcommon.fpbase import FPNumDecode, FPRoundingMode
+from ieee754.fpcommon.fpbase import FPFormat, FPNumDecode, FPRoundingMode
 
 from ieee754.fpcommon.fpbase import FPNumBaseRecord
 from ieee754.fpcommon.basedata import FPBaseData
 from ieee754.fpcommon.denorm import (FPSCData, FPAddDeNormMod)
+
+
+class FPAddInputData(FPBaseData):
+    def __init__(self, pspec):
+        super().__init__(pspec)
+        self.is_sub = Signal(reset=False)
+
+    def eq(self, i):
+        ret = super().eq(i)
+        ret.append(self.is_sub.eq(i.is_sub))
+        return ret
+
+    def __iter__(self):
+        yield from super().__iter__()
+        yield self.is_sub
+
+    def ports(self):
+        return list(self)
 
 
 class FPAddSpecialCasesMod(PipeModBase):
@@ -22,7 +40,7 @@ class FPAddSpecialCasesMod(PipeModBase):
         super().__init__(pspec, "specialcases")
 
     def ispec(self):
-        return FPBaseData(self.pspec)
+        return FPAddInputData(self.pspec)
 
     def ospec(self):
         return FPSCData(self.pspec, True)
@@ -37,11 +55,16 @@ class FPAddSpecialCasesMod(PipeModBase):
         b1 = FPNumBaseRecord(width)
         m.submodules.sc_decode_a = a1 = FPNumDecode(None, a1)
         m.submodules.sc_decode_b = b1 = FPNumDecode(None, b1)
-        comb += [a1.v.eq(self.i.a),
-                     b1.v.eq(self.i.b),
-                     self.o.a.eq(a1),
-                     self.o.b.eq(b1)
-                    ]
+        flip_b_sign = Signal()
+        b_is_nan = Signal()
+        comb += [
+            b_is_nan.eq(FPFormat.standard(width).is_nan(self.i.b)),
+            flip_b_sign.eq(self.i.is_sub & ~b_is_nan),
+            a1.v.eq(self.i.a),
+            b1.v.eq(self.i.b ^ (flip_b_sign << (width - 1))),
+            self.o.a.eq(a1),
+            self.o.b.eq(b1)
+        ]
 
         zero_sign_array = FPRoundingMode.make_array(FPRoundingMode.zero_sign)
 
