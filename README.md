@@ -1,16 +1,25 @@
-# IEEE754 Floating-Point ALU, in nmigen
+# IEEE754 Floating-Point ALU, in nmigen(tm)
 
-This project implements a pipelined IEEE754 floating-point ALU that
-supports FP16, FP32 and FP64.  It is a general-purpose unit that
-may be used in any project (not limited to one specific processor).
+nmigen (and all aliases) are Trademarks of M-Labs.
+nmigen is a Registered Trademark of M-Labs
+https://uspto.report/TM/88980893
 
-Developed under a Grant from NLnet (http://nlnet.nl), more information
-may be found at http://libre-soc.org
+This project implements a parameteriseable pipelined IEEE754 floating-point
+ALU that supports FP16, FP32 and FP64.  Other FP sizes (FP80, BF16, FP128)
+are a matter of adding new parameters for mantissa and exponent.
+The IEEE754 FP Library is a general-purpose unit that may be used in
+any project (not limited to one specific processor).  Limited Formal
+Correctness Proofs are provided (so far for fpadd, fpsub) as well as
+hundreds of thousands of unit tests.
+
+Developed under Grants from NLnet (http://nlnet.nl), from
+EU Grants 871528 and 957073.  more information may be found at
+http://libre-soc.org
 
 # Requirements
 
-* nmigen
-* libresoc-nmutil
+* nmigen (https://gitlab.com/nmigen/nmigen)
+* libresoc-nmutil (https://git.libre-soc.org/?p=nmutil.git;a=summary)
 * yosys (latest git repository, required by nmigen)
 * sfpy (running unit tests).  provides python bindings to berkeley softfloat-3
 
