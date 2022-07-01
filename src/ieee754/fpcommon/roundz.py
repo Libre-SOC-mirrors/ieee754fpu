@@ -3,10 +3,9 @@
 # 2013-12-12
 
 from nmigen import Module, Signal, Mux
-from nmigen.cli import main, verilog
 
 from nmutil.pipemodbase import PipeModBase
-from ieee754.fpcommon.fpbase import FPNumBase, FPNumBaseRecord
+from ieee754.fpcommon.fpbase import FPNumBaseRecord, FPRoundingMode
 from ieee754.fpcommon.getop import FPPipeContext
 from ieee754.fpcommon.postnormalise import FPNorm1Data
 
@@ -22,9 +21,12 @@ class FPRoundData:
         self.out_do_z = Signal(reset_less=True)
         self.oz = Signal(width, reset_less=True)
 
+        self.rm = Signal(FPRoundingMode, reset=FPRoundingMode.DEFAULT)
+        """rounding mode"""
+
     def eq(self, i):
         ret = [self.z.eq(i.z), self.out_do_z.eq(i.out_do_z), self.oz.eq(i.oz),
-               self.ctx.eq(i.ctx)]
+               self.ctx.eq(i.ctx), self.rm.eq(i.rm)]
         return ret
 
 

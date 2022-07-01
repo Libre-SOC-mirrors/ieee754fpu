@@ -4,9 +4,8 @@ Copyright (C) 2019 Luke Kenneth Casson Leighton <lkcl@lkcl.net>
 
 """
 
-from nmigen import Module, Signal
-
-from ieee754.fpcommon.fpbase import FPNumBaseRecord
+from nmigen import Signal
+from ieee754.fpcommon.fpbase import FPNumBaseRecord, FPRoundingMode
 from ieee754.fpcommon.getop import FPPipeContext
 
 
@@ -21,6 +20,9 @@ class FPAddStage0Data:
         self.ctx = FPPipeContext(pspec)
         self.muxid = self.ctx.muxid
 
+        self.rm = Signal(FPRoundingMode, reset=FPRoundingMode.DEFAULT)
+        """rounding mode"""
+
     def eq(self, i):
         return [self.z.eq(i.z), self.out_do_z.eq(i.out_do_z), self.oz.eq(i.oz),
-                self.tot.eq(i.tot), self.ctx.eq(i.ctx)]
+                self.tot.eq(i.tot), self.ctx.eq(i.ctx), self.rm.eq(i.rm)]

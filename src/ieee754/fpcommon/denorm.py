@@ -52,5 +52,6 @@ class FPAddDeNormMod(PipeModBase):
         comb += self.o.z.eq(self.i.z)
         comb += self.o.out_do_z.eq(self.i.out_do_z)
         comb += self.o.oz.eq(self.i.oz)
+        comb += self.o.rm.eq(self.i.rm)
 
         return m

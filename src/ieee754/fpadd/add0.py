@@ -60,5 +60,6 @@ class FPAddStage0Mod(PipeModBase):
         comb += self.o.oz.eq(self.i.oz)
         comb += self.o.out_do_z.eq(self.i.out_do_z)
         comb += self.o.ctx.eq(self.i.ctx)
+        comb += self.o.rm.eq(self.i.rm)
 
         return m

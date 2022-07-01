@@ -2,12 +2,10 @@
 # Copyright (C) Jonathan P Dawson 2013
 # 2013-12-12
 
-from nmigen import Module, Signal, Cat, Mux
-from nmigen.cli import main, verilog
-from math import log
+from nmigen import Module, Signal, Cat
 
 from nmutil.pipemodbase import PipeModBase
-from ieee754.fpcommon.fpbase import (Overflow, OverflowMod,
+from ieee754.fpcommon.fpbase import (FPRoundingMode, Overflow, OverflowMod,
                                      FPNumBase, FPNumBaseRecord)
 from ieee754.fpcommon.fpbase import FPState
 from ieee754.fpcommon.getop import FPPipeContext
@@ -27,9 +25,12 @@ class FPNorm1Data:
         self.ctx = FPPipeContext(pspec)
         self.muxid = self.ctx.muxid
 
+        self.rm = Signal(FPRoundingMode, reset=FPRoundingMode.DEFAULT)
+        """rounding mode"""
+
     def eq(self, i):
         ret = [self.z.eq(i.z), self.out_do_z.eq(i.out_do_z), self.oz.eq(i.oz),
-               self.roundz.eq(i.roundz), self.ctx.eq(i.ctx)]
+               self.roundz.eq(i.roundz), self.ctx.eq(i.ctx), self.rm.eq(i.rm)]
         return ret
 
 
@@ -128,6 +129,7 @@ class FPNorm1ModSingle(PipeModBase):
         m.d.comb += self.o.ctx.eq(self.i.ctx)
         m.d.comb += self.o.out_do_z.eq(self.i.out_do_z)
         m.d.comb += self.o.oz.eq(self.i.oz)
+        m.d.comb += self.o.rm.eq(of.rm)
 
         return m
 

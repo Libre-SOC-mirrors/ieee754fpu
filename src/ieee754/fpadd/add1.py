@@ -57,7 +57,9 @@ class FPAddStage1Mod(PipeModBase):
             self.o.of.guard.eq(to[3]),
             self.o.of.round_bit.eq(to[2]),
             # sticky sourced from LSB and shifted if MSB hi, else unshifted
-            self.o.of.sticky.eq(Mux(msb, to[1] | tot[0], to[1]))
+            self.o.of.sticky.eq(Mux(msb, to[1] | tot[0], to[1])),
+            self.o.of.rm.eq(self.i.rm),
+            self.o.of.sign.eq(self.i.z.s),
         ]
 
         comb += self.o.out_do_z.eq(self.i.out_do_z)

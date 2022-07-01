@@ -6,7 +6,7 @@ Copyright (C) 2019 Jake Lifshay
 """
 
 
-from nmigen import Signal, Cat, Const, Mux, Module, Elaboratable, Array
+from nmigen import Signal, Cat, Const, Mux, Module, Elaboratable, Array, Value
 from math import log
 from operator import or_
 from functools import reduce
@@ -89,8 +89,8 @@ class FPRoundingMode(enum.Enum):
 
     ROUND_NEAREST_TIES_TO_AWAY = RNA
 
-    RTO = 0b101
-    """Round to Odd
+    RTOP = 0b101
+    """Round to Odd, unsigned zeros are Positive
 
     Not in smtlib2.
 
@@ -98,12 +98,109 @@ class FPRoundingMode(enum.Enum):
     that, otherwise return the nearest representable floating-point value
     that has an odd mantissa.
 
+    If the result is zero but with otherwise undetermined sign
+    (e.g. `1.0 - 1.0`), the sign is positive.
+
+    This rounding mode is used for instructions with Round To Odd enabled,
+    and `FPSCR.RN != RTN`.
+
     This is useful to avoid double-rounding errors when doing arithmetic in a
     larger type (e.g. f128) but where the answer should be a smaller type
     (e.g. f80).
     """
 
-    ROUND_TO_ODD = RTO
+    ROUND_TO_ODD_UNSIGNED_ZEROS_ARE_POSITIVE = RTOP
+
+    RTON = 0b110
+    """Round to Odd, unsigned zeros are Negative
+
+    Not in smtlib2.
+
+    If the result is exactly representable as a floating-point number, return
+    that, otherwise return the nearest representable floating-point value
+    that has an odd mantissa.
+
+    If the result is zero but with otherwise undetermined sign
+    (e.g. `1.0 - 1.0`), the sign is negative.
+
+    This rounding mode is used for instructions with Round To Odd enabled,
+    and `FPSCR.RN == RTN`.
+
+    This is useful to avoid double-rounding errors when doing arithmetic in a
+    larger type (e.g. f128) but where the answer should be a smaller type
+    (e.g. f80).
+    """
+
+    ROUND_TO_ODD_UNSIGNED_ZEROS_ARE_NEGATIVE = RTON
+
+    @staticmethod
+    def make_array(f):
+        l = [None] * len(FPRoundingMode)
+        for rm in FPRoundingMode:
+            l[rm.value] = f(rm)
+        return Array(l)
+
+    def overflow_rounds_to_inf(self, sign):
+        """returns true if an overflow should round to `inf`,
+        false if it should round to `max_normal`
+        """
+        not_sign = ~sign if isinstance(sign, Value) else not sign
+        if self is FPRoundingMode.RNE:
+            return True
+        elif self is FPRoundingMode.RTZ:
+            return False
+        elif self is FPRoundingMode.RTP:
+            return not_sign
+        elif self is FPRoundingMode.RTN:
+            return sign
+        elif self is FPRoundingMode.RNA:
+            return True
+        elif self is FPRoundingMode.RTOP:
+            return False
+        else:
+            assert self is FPRoundingMode.RTON
+            return False
+
+    def underflow_rounds_to_zero(self, sign):
+        """returns true if an underflow should round to `zero`,
+        false if it should round to `min_denormal`
+        """
+        not_sign = ~sign if isinstance(sign, Value) else not sign
+        if self is FPRoundingMode.RNE:
+            return True
+        elif self is FPRoundingMode.RTZ:
+            return True
+        elif self is FPRoundingMode.RTP:
+            return sign
+        elif self is FPRoundingMode.RTN:
+            return not_sign
+        elif self is FPRoundingMode.RNA:
+            return True
+        elif self is FPRoundingMode.RTOP:
+            return False
+        else:
+            assert self is FPRoundingMode.RTON
+            return False
+
+    def zero_sign(self):
+        """which sign an exact zero result should have when it isn't
+        otherwise determined, e.g. for `1.0 - 1.0`.
+        """
+        if self is FPRoundingMode.RNE:
+            return False
+        elif self is FPRoundingMode.RTZ:
+            return False
+        elif self is FPRoundingMode.RTP:
+            return False
+        elif self is FPRoundingMode.RTN:
+            return True
+        elif self is FPRoundingMode.RNA:
+            return False
+        elif self is FPRoundingMode.RTOP:
+            return False
+        else:
+            assert self is FPRoundingMode.RTON
+            return True
 
     if _HAVE_SMTLIB2:
         def to_smtlib2(self, default=_raise_err):
@@ -122,7 +219,7 @@ class FPRoundingMode(enum.Enum):
             elif self is FPRoundingMode.RNA:
                 return RoundingModeEnum.RNA
             else:
-                assert self is FPRoundingMode.RTO
+                assert self in (FPRoundingMode.RTOP, FPRoundingMode.RTON)
                 if default is _raise_err:
                     raise ValueError(
                         "no corresponding smtlib2 rounding mode", self)
@@ -547,6 +644,12 @@ class FPNumBaseRecord:
 
     def inf(self, s):
         return self.create(*self._inf(s))
+
+    def max_normal(self, s):
+        return self.create(s, self.fp.P127, ~0)
+
+    def min_denormal(self, s):
+        return self.create(s, self.fp.N127, 1)
 
     def zero(self, s):
         return self.create(*self._zero(s))
@@ -1017,7 +1120,8 @@ class Overflow:
         self.sign = Signal(reset_less=True, name=name+"sign")
         """sign bit -- 1 means negative, 0 means positive"""
 
-        self.rm = Signal(name=name+"rm", reset=FPRoundingMode.DEFAULT)
+        self.rm = Signal(FPRoundingMode, name=name+"rm",
+                         reset=FPRoundingMode.DEFAULT)
         """rounding mode"""
 
         #self.roundz = Signal(reset_less=True)
@@ -1062,16 +1166,15 @@ class Overflow:
 
         assumes the rounding mode is `ROUND_TOWARDS_NEGATIVE`
         """
-        FPRoundingMode.ROUND_TOWARDS_NEGATIVE
         return self.sign & (self.guard | self.round_bit | self.sticky)
 
     @property
     def roundz_rto(self):
-        """true if the mantissa should be rounded up for `rm == RTO`
+        """true if the mantissa should be rounded up for `rm in (RTOP, RTON)`
 
-        assumes the rounding mode is `ROUND_TO_ODD`
+        assumes the rounding mode is `ROUND_TO_ODD_UNSIGNED_ZEROS_ARE_POSITIVE`
+        or `ROUND_TO_ODD_UNSIGNED_ZEROS_ARE_NEGATIVE`
         """
-        FPRoundingMode.ROUND_TO_ODD
         return ~self.m0 & (self.guard | self.round_bit | self.sticky)
 
     @property
@@ -1080,7 +1183,6 @@ class Overflow:
 
         assumes the rounding mode is `ROUND_TOWARDS_POSITIVE`
         """
-        FPRoundingMode.ROUND_TOWARDS_POSITIVE
         return ~self.sign & (self.guard | self.round_bit | self.sticky)
 
     @property
@@ -1089,24 +1191,23 @@ class Overflow:
 
         assumes the rounding mode is `ROUND_TOWARDS_ZERO`
         """
-        FPRoundingMode.ROUND_TOWARDS_ZERO
-        return self.guard & (self.round_bit | self.sticky | self.m0)
+        return False
 
     @property
     def roundz(self):
         """true if the mantissa should be rounded up for the current rounding
         mode `self.rm`
         """
-        l = [None] * len(FPRoundingMode)
-        l[FPRoundingMode.RNA.value] = self.roundz_rna
-        l[FPRoundingMode.RNE.value] = self.roundz_rne
-        l[FPRoundingMode.RTN.value] = self.roundz_rtn
-        l[FPRoundingMode.RTO.value] = self.roundz_rto
-        l[FPRoundingMode.RTP.value] = self.roundz_rtp
-        l[FPRoundingMode.RTZ.value] = self.roundz_rtz
-        for (i, v) in enumerate(l):
-            assert v is not None, f"missing rounding mode {bin(i)}"
-        return Array(l)[self.rm]
+        d = {
+            FPRoundingMode.RNA: self.roundz_rna,
+            FPRoundingMode.RNE: self.roundz_rne,
+            FPRoundingMode.RTN: self.roundz_rtn,
+            FPRoundingMode.RTOP: self.roundz_rto,
+            FPRoundingMode.RTON: self.roundz_rto,
+            FPRoundingMode.RTP: self.roundz_rtp,
+            FPRoundingMode.RTZ: self.roundz_rtz,
+        }
+        return FPRoundingMode.make_array(lambda rm: d[rm])[self.rm]
 
 
 class OverflowMod(Elaboratable, Overflow):

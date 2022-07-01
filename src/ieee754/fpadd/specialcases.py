@@ -2,12 +2,10 @@
 # Copyright (C) Jonathan P Dawson 2013
 # 2013-12-12
 
-from nmigen import Module, Signal, Cat, Const, Mux
-from nmigen.cli import main, verilog
-from math import log
+from nmigen import Module, Signal, Cat, Mux
 
 from nmutil.pipemodbase import PipeModBase, PipeModBaseChain
-from ieee754.fpcommon.fpbase import FPNumDecode
+from ieee754.fpcommon.fpbase import FPNumDecode, FPRoundingMode
 
 from ieee754.fpcommon.fpbase import FPNumBaseRecord
 from ieee754.fpcommon.basedata import FPBaseData
@@ -45,8 +43,11 @@ class FPAddSpecialCasesMod(PipeModBase):
                      self.o.b.eq(b1)
                     ]
 
+        zero_sign_array = FPRoundingMode.make_array(FPRoundingMode.zero_sign)
+
         # temporaries used below
         s_nomatch = Signal(reset_less=True)
+        s_match = Signal(reset_less=True)
         m_match = Signal(reset_less=True)
         e_match = Signal(reset_less=True)
         absa = Signal(reset_less=True) # a1.s & b1.s
@@ -61,6 +62,7 @@ class FPAddSpecialCasesMod(PipeModBase):
         t_special = Signal(reset_less=True)
 
         comb += s_nomatch.eq(a1.s != b1.s)
+        comb += s_match.eq(a1.s == b1.s)
         comb += m_match.eq(a1.m == b1.m)
         comb += e_match.eq(a1.e == b1.e)
 
@@ -80,12 +82,14 @@ class FPAddSpecialCasesMod(PipeModBase):
 
         # prepare inf/zero/nans
         z_zero = FPNumBaseRecord(width, False, name="z_zero")
+        z_default_zero = FPNumBaseRecord(width, False, name="z_default_zero")
         z_default_nan = FPNumBaseRecord(width, False, name="z_default_nan")
         z_quieted_a = FPNumBaseRecord(width, False, name="z_quieted_a")
         z_quieted_b = FPNumBaseRecord(width, False, name="z_quieted_b")
         z_infa = FPNumBaseRecord(width, False, name="z_infa")
         z_infb = FPNumBaseRecord(width, False, name="z_infb")
         comb += z_zero.zero(0)
+        comb += z_default_zero.zero(zero_sign_array[self.i.rm])
         comb += z_default_nan.nan(0)
         comb += z_quieted_a.quieted_nan(a1)
         comb += z_quieted_b.quieted_nan(b1)
@@ -103,20 +107,20 @@ class FPAddSpecialCasesMod(PipeModBase):
         #   if a is inf and signs don't match return NaN
         #   else return inf(a)
         # elif b is inf return inf(b)
-        # elif a is zero and b zero return signed-a/b
+        # elif a is zero and b zero with same sign return a
+        # elif a equal to -b return zero (sign determined by rounding-mode)
         # elif a is zero return b
         # elif b is zero return a
-        # elif a equal to -b return zero (+ve zero)
 
         # XXX *sigh* there are better ways to do this...
         # one of them: use a priority-picker!
         # in reverse-order, accumulate Muxing
 
         oz = 0
-        oz = Mux(t_aeqmb, z_zero.v, oz)
         oz = Mux(t_b1zero, a1.v, oz)
         oz = Mux(t_a1zero, b1.v, oz)
-        oz = Mux(t_abz, Cat(self.i.b[:-1], absa), oz)
+        oz = Mux(t_aeqmb, z_default_zero.v, oz)
+        oz = Mux(t_abz & s_match, a1.v, oz)
         oz = Mux(t_b1inf, z_infb.v, oz)
         oz = Mux(t_a1inf, Mux(bexp128s, z_default_nan.v, z_infa.v), oz)
         oz = Mux(t_abnan, Mux(a1.is_nan, z_quieted_a.v, z_quieted_b.v), oz)
@@ -124,6 +128,8 @@ class FPAddSpecialCasesMod(PipeModBase):
         comb += self.o.oz.eq(oz)
 
         comb += self.o.ctx.eq(self.i.ctx)
+
+        comb += self.o.rm.eq(self.i.rm)
 
         return m
 

@@ -5,7 +5,7 @@ Copyright (C) 2019 Luke Kenneth Casson Leighton <lkcl@lkcl.net>
 """
 
 from nmigen import Signal
-from ieee754.fpcommon.fpbase import FPNumBaseRecord
+from ieee754.fpcommon.fpbase import FPNumBaseRecord, FPRoundingMode
 from ieee754.fpcommon.getop import FPPipeContext
 
 
@@ -25,6 +25,9 @@ class FPSCData:
         self.ctx = FPPipeContext(pspec)
         self.muxid = self.ctx.muxid
 
+        self.rm = Signal(FPRoundingMode, reset=FPRoundingMode.DEFAULT)
+        """rounding mode"""
+
     def __iter__(self):
         yield from self.a
         yield from self.b
@@ -32,8 +35,10 @@ class FPSCData:
         yield self.oz
         yield self.out_do_z
         yield from self.ctx
+        yield self.rm
 
     def eq(self, i):
         ret = [self.z.eq(i.z), self.out_do_z.eq(i.out_do_z), self.oz.eq(i.oz),
-               self.a.eq(i.a), self.b.eq(i.b), self.ctx.eq(i.ctx)]
+               self.a.eq(i.a), self.b.eq(i.b), self.ctx.eq(i.ctx),
+               self.rm.eq(i.rm)]
         return ret
