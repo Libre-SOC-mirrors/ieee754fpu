@@ -1,7 +1,7 @@
 """IEEE754 Floating Point Library
 
 Copyright (C) 2019 Luke Kenneth Casson Leighton <lkcl@lkcl.net>
-Copyright (C) 2019 Jake Lifshay
+Copyright (C) 2019,2021 Jake Lifshay
 
 """
 
