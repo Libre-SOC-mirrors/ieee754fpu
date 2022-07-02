@@ -8,6 +8,9 @@ from nmigen.hdl.smtlib2 import SmtFloatingPoint, SmtSortFloatingPoint, \
     SmtRoundingMode, ROUND_TOWARD_POSITIVE, ROUND_TOWARD_NEGATIVE
 from ieee754.fpcommon.fpbase import FPRoundingMode
 from ieee754.pipeline import PipelineSpec
+import os
+
+ENABLE_FADD_F32_FORMAL = os.getenv("ENABLE_FADD_F32_FORMAL") is not None
 
 
 class TestFAddFSubFormal(FHDLTestCase):
@@ -81,6 +84,8 @@ class TestFAddFSubFormal(FHDLTestCase):
     def test_fadd_f16_rne_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat16(), FPRoundingMode.RNE, False)
 
+    @unittest.skipUnless(ENABLE_FADD_F32_FORMAL,
+                         "ENABLE_FADD_F32_FORMAL not in environ")
     def test_fadd_f32_rne_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat32(), FPRoundingMode.RNE, False)
 
@@ -91,6 +96,8 @@ class TestFAddFSubFormal(FHDLTestCase):
     def test_fadd_f16_rtz_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat16(), FPRoundingMode.RTZ, False)
 
+    @unittest.skipUnless(ENABLE_FADD_F32_FORMAL,
+                         "ENABLE_FADD_F32_FORMAL not in environ")
     def test_fadd_f32_rtz_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat32(), FPRoundingMode.RTZ, False)
 
@@ -101,6 +108,8 @@ class TestFAddFSubFormal(FHDLTestCase):
     def test_fadd_f16_rtp_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat16(), FPRoundingMode.RTP, False)
 
+    @unittest.skipUnless(ENABLE_FADD_F32_FORMAL,
+                         "ENABLE_FADD_F32_FORMAL not in environ")
     def test_fadd_f32_rtp_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat32(), FPRoundingMode.RTP, False)
 
@@ -111,6 +120,8 @@ class TestFAddFSubFormal(FHDLTestCase):
     def test_fadd_f16_rtn_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat16(), FPRoundingMode.RTN, False)
 
+    @unittest.skipUnless(ENABLE_FADD_F32_FORMAL,
+                         "ENABLE_FADD_F32_FORMAL not in environ")
     def test_fadd_f32_rtn_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat32(), FPRoundingMode.RTN, False)
 
@@ -121,6 +132,8 @@ class TestFAddFSubFormal(FHDLTestCase):
     def test_fadd_f16_rna_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat16(), FPRoundingMode.RNA, False)
 
+    @unittest.skipUnless(ENABLE_FADD_F32_FORMAL,
+                         "ENABLE_FADD_F32_FORMAL not in environ")
     def test_fadd_f32_rna_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat32(), FPRoundingMode.RNA, False)
 
@@ -131,6 +144,8 @@ class TestFAddFSubFormal(FHDLTestCase):
     def test_fadd_f16_rtop_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat16(), FPRoundingMode.RTOP, False)
 
+    @unittest.skipUnless(ENABLE_FADD_F32_FORMAL,
+                         "ENABLE_FADD_F32_FORMAL not in environ")
     def test_fadd_f32_rtop_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat32(), FPRoundingMode.RTOP, False)
 
@@ -141,6 +156,8 @@ class TestFAddFSubFormal(FHDLTestCase):
     def test_fadd_f16_rton_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat16(), FPRoundingMode.RTON, False)
 
+    @unittest.skipUnless(ENABLE_FADD_F32_FORMAL,
+                         "ENABLE_FADD_F32_FORMAL not in environ")
     def test_fadd_f32_rton_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat32(), FPRoundingMode.RTON, False)
 
@@ -151,6 +168,8 @@ class TestFAddFSubFormal(FHDLTestCase):
     def test_fsub_f16_rne_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat16(), FPRoundingMode.RNE, True)
 
+    @unittest.skipUnless(ENABLE_FADD_F32_FORMAL,
+                         "ENABLE_FADD_F32_FORMAL not in environ")
     def test_fsub_f32_rne_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat32(), FPRoundingMode.RNE, True)
 
@@ -161,6 +180,8 @@ class TestFAddFSubFormal(FHDLTestCase):
     def test_fsub_f16_rtz_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat16(), FPRoundingMode.RTZ, True)
 
+    @unittest.skipUnless(ENABLE_FADD_F32_FORMAL,
+                         "ENABLE_FADD_F32_FORMAL not in environ")
     def test_fsub_f32_rtz_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat32(), FPRoundingMode.RTZ, True)
 
@@ -171,6 +192,8 @@ class TestFAddFSubFormal(FHDLTestCase):
     def test_fsub_f16_rtp_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat16(), FPRoundingMode.RTP, True)
 
+    @unittest.skipUnless(ENABLE_FADD_F32_FORMAL,
+                         "ENABLE_FADD_F32_FORMAL not in environ")
     def test_fsub_f32_rtp_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat32(), FPRoundingMode.RTP, True)
 
@@ -181,6 +204,8 @@ class TestFAddFSubFormal(FHDLTestCase):
     def test_fsub_f16_rtn_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat16(), FPRoundingMode.RTN, True)
 
+    @unittest.skipUnless(ENABLE_FADD_F32_FORMAL,
+                         "ENABLE_FADD_F32_FORMAL not in environ")
     def test_fsub_f32_rtn_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat32(), FPRoundingMode.RTN, True)
 
@@ -191,6 +216,8 @@ class TestFAddFSubFormal(FHDLTestCase):
     def test_fsub_f16_rna_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat16(), FPRoundingMode.RNA, True)
 
+    @unittest.skipUnless(ENABLE_FADD_F32_FORMAL,
+                         "ENABLE_FADD_F32_FORMAL not in environ")
     def test_fsub_f32_rna_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat32(), FPRoundingMode.RNA, True)
 
@@ -201,6 +228,8 @@ class TestFAddFSubFormal(FHDLTestCase):
     def test_fsub_f16_rtop_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat16(), FPRoundingMode.RTOP, True)
 
+    @unittest.skipUnless(ENABLE_FADD_F32_FORMAL,
+                         "ENABLE_FADD_F32_FORMAL not in environ")
     def test_fsub_f32_rtop_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat32(), FPRoundingMode.RTOP, True)
 
@@ -211,6 +240,8 @@ class TestFAddFSubFormal(FHDLTestCase):
     def test_fsub_f16_rton_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat16(), FPRoundingMode.RTON, True)
 
+    @unittest.skipUnless(ENABLE_FADD_F32_FORMAL,
+                         "ENABLE_FADD_F32_FORMAL not in environ")
     def test_fsub_f32_rton_formal(self):
         self.tst_fadd_fsub_formal(SmtSortFloat32(), FPRoundingMode.RTON, True)
 
