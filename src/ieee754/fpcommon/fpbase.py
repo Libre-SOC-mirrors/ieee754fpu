@@ -6,7 +6,8 @@ Copyright (C) 2019,2022 Jacob Lifshay <programmerjake@gmail.com>
 """
 
 
-from nmigen import Signal, Cat, Const, Mux, Module, Elaboratable, Array, Value
+from nmigen import (Signal, Cat, Const, Mux, Module, Elaboratable, Array,
+                    Value, Shape)
 from math import log
 from operator import or_
 from functools import reduce
@@ -319,6 +320,17 @@ class FPFormat:
         """
         return x & self.mantissa_mask
 
+    def get_mantissa_value(self, x):
+        """ returns the mantissa of its input number, x, but with the
+        implicit bit, if any, made explicit.
+        """
+        if self.has_int_bit:
+            return self.get_mantissa_field(x)
+        exponent_field = self.get_exponent_field(x)
+        mantissa_field = self.get_mantissa_field(x)
+        implicit_bit = exponent_field == self.exponent_denormal_zero
+        return (implicit_bit << self.fraction_width) | mantissa_field
+
     def is_zero(self, x):
         """ returns true if x is +/- zero
         """
@@ -351,6 +363,23 @@ class FPFormat:
             (self.get_mantissa_field(x) != 0) & \
             (self.get_mantissa_field(x) & highbit != 0)
 
+    def to_quiet_nan(self, x):
+        """ converts `x` to a quiet NaN """
+        highbit = 1 << (self.m_width - 1)
+        return x | highbit | self.exponent_mask
+
+    def quiet_nan(self, sign=0):
+        """ return the default quiet NaN with sign `sign` """
+        return self.to_quiet_nan(self.zero(sign))
+
+    def zero(self, sign=0):
+        """ return zero with sign `sign` """
+        return (sign != 0) << (self.e_width + self.m_width)
+
+    def inf(self, sign=0):
+        """ return infinity with sign `sign` """
+        return self.zero(sign) | self.exponent_mask
+
     def is_nan_signaling(self, x):
         """ returns true if x is a signalling nan
         """
@@ -368,6 +397,11 @@ class FPFormat:
     def mantissa_mask(self):
         """ Get a mantissa mask based on the mantissa width """
         return (1 << self.m_width) - 1
+
+    @property
+    def exponent_mask(self):
+        """ Get an exponent mask """
+        return self.exponent_inf_nan << self.m_width
 
     @property
     def exponent_inf_nan(self):
@@ -775,7 +809,7 @@ class MultiShiftRMerge(Elaboratable):
     def __init__(self, width, s_max=None):
         if s_max is None:
             s_max = int(log(width) / log(2))
-        self.smax = s_max
+        self.smax = Shape.cast(s_max)
         self.m = Signal(width, reset_less=True)
         self.inp = Signal(width, reset_less=True)
         self.diff = Signal(s_max, reset_less=True)
@@ -789,8 +823,8 @@ class MultiShiftRMerge(Elaboratable):
         smask = Signal(self.width, reset_less=True)
         stickybit = Signal(reset_less=True)
         # XXX GRR frickin nuisance https://github.com/nmigen/nmigen/issues/302
-        maxslen = Signal(self.smax[0], reset_less=True)
-        maxsleni = Signal(self.smax[0], reset_less=True)
+        maxslen = Signal(self.smax.width, reset_less=True)
+        maxsleni = Signal(self.smax.width, reset_less=True)
 
         sm = MultiShift(self.width-1)
         m0s = Const(0, self.width-1)
