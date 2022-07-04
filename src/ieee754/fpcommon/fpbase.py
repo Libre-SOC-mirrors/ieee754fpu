@@ -7,7 +7,7 @@ Copyright (C) 2019,2022 Jacob Lifshay <programmerjake@gmail.com>
 
 
 from nmigen import (Signal, Cat, Const, Mux, Module, Elaboratable, Array,
-                    Value, Shape)
+                    Value, Shape, signed, unsigned)
 from nmigen.utils import bits_for
 from operator import or_
 from functools import reduce
@@ -313,7 +313,12 @@ class FPFormat:
     def get_exponent(self, x):
         """ returns the exponent of its input number, x
         """
-        return self.get_exponent_field(x) - self.exponent_bias
+        x = self.get_exponent_field(x)
+        if isinstance(x, Value) and not x.shape().signed:
+            # convert x to signed without changing its value,
+            # since exponents can be negative
+            x |= Const(0, signed(1))
+        return x - self.exponent_bias
 
     def get_mantissa_field(self, x):
         """ returns the mantissa of its input number, x
@@ -328,7 +333,7 @@ class FPFormat:
             return self.get_mantissa_field(x)
         exponent_field = self.get_exponent_field(x)
         mantissa_field = self.get_mantissa_field(x)
-        implicit_bit = exponent_field == self.exponent_denormal_zero
+        implicit_bit = exponent_field != self.exponent_denormal_zero
         return (implicit_bit << self.fraction_width) | mantissa_field
 
     def is_zero(self, x):
@@ -610,7 +615,7 @@ class FPNumBaseRecord:
         self.v = Signal(width, reset_less=True,
                         name=name+"v")  # Latched copy of value
         self.m = Signal(m_width, reset_less=True, name=name+"m")  # Mantissa
-        self.e = Signal((e_width, True),
+        self.e = Signal(signed(e_width),
                         reset_less=True, name=name+"e")  # exp+2 bits, signed
         self.s = Signal(reset_less=True, name=name+"s")  # Sign bit
 
@@ -635,14 +640,14 @@ class FPNumBaseRecord:
         e_max = self.e_max
         e_width = self.e_width
 
-        self.mzero = Const(0, (m_width, False))
+        self.mzero = Const(0, unsigned(m_width))
         m_msb = 1 << (self.m_width-2)
-        self.msb1 = Const(m_msb, (m_width, False))
-        self.m1s = Const(-1, (m_width, False))
-        self.P128 = Const(e_max, (e_width, True))
-        self.P127 = Const(e_max-1, (e_width, True))
-        self.N127 = Const(-(e_max-1), (e_width, True))
-        self.N126 = Const(-(e_max-2), (e_width, True))
+        self.msb1 = Const(m_msb, unsigned(m_width))
+        self.m1s = Const(-1, unsigned(m_width))
+        self.P128 = Const(e_max, signed(e_width))
+        self.P127 = Const(e_max-1, signed(e_width))
+        self.N127 = Const(-(e_max-1), signed(e_width))
+        self.N126 = Const(-(e_max-2), signed(e_width))
 
     def create(self, s, e, m):
         """ creates a value from sign / exponent / mantissa
@@ -731,7 +736,7 @@ class FPNumBase(FPNumBaseRecord, Elaboratable):
         self.is_overflowed = Signal(reset_less=True)
         self.is_denormalised = Signal(reset_less=True)
         self.exp_128 = Signal(reset_less=True)
-        self.exp_sub_n126 = Signal((e_width, True), reset_less=True)
+        self.exp_sub_n126 = Signal(signed(e_width), reset_less=True)
         self.exp_lt_n126 = Signal(reset_less=True)
         self.exp_zero = Signal(reset_less=True)
         self.exp_gt_n126 = Signal(reset_less=True)
