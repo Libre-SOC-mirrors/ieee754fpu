@@ -6,7 +6,7 @@ from nmigen import Module, Signal, Cat
 
 from nmutil.pipemodbase import PipeModBase
 from ieee754.fpcommon.fpbase import (FPRoundingMode, Overflow, OverflowMod,
-                                     FPNumBase, FPNumBaseRecord)
+                                     FPNumBase, FPNumBaseRecord, FPFormat)
 from ieee754.fpcommon.fpbase import FPState
 from ieee754.fpcommon.getop import FPPipeContext
 from ieee754.fpcommon.msbhigh import FPMSBHigh
@@ -19,7 +19,8 @@ class FPNorm1Data:
     def __init__(self, pspec):
         width = pspec.width
         self.roundz = Signal(reset_less=True, name="norm1_roundz")
-        self.z = FPNumBaseRecord(width, False, name="z")
+        self.z = FPNumBaseRecord(m_extra=False, name="z",
+                                 fpformat=FPFormat.from_pspec(pspec))
         self.out_do_z = Signal(reset_less=True)
         self.oz = Signal(width, reset_less=True)
         self.ctx = FPPipeContext(pspec)

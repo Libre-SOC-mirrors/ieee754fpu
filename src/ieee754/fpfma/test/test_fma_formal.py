@@ -10,11 +10,11 @@ from ieee754.fpcommon.fpbase import FPFormat, FPRoundingMode
 from ieee754.pipeline import PipelineSpec
 import os
 
+ENABLE_FMA_F16_FORMAL = os.getenv("ENABLE_FMA_F16_FORMAL") is not None
 ENABLE_FMA_F32_FORMAL = os.getenv("ENABLE_FMA_F32_FORMAL") is not None
 
 
 class TestFMAFormal(FHDLTestCase):
-    @unittest.skip("not finished implementing")  # FIXME: remove skip
     def tst_fma_formal(self, sort, rm, negate_addend, negate_product):
         assert isinstance(sort, SmtSortFloatingPoint)
         assert isinstance(rm, FPRoundingMode)
@@ -121,114 +121,310 @@ class TestFMAFormal(FHDLTestCase):
 
     # FIXME: check exception flags
 
+    def test_fmadd_f8_rne_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RNE,
+                            negate_addend=False, negate_product=False)
+
+    def test_fmsub_f8_rne_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RNE,
+                            negate_addend=True, negate_product=False)
+
+    def test_fnmadd_f8_rne_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RNE,
+                            negate_addend=True, negate_product=True)
+
+    def test_fnmsub_f8_rne_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RNE,
+                            negate_addend=False, negate_product=True)
+
+    def test_fmadd_f8_rtz_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTZ,
+                            negate_addend=False, negate_product=False)
+
+    def test_fmsub_f8_rtz_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTZ,
+                            negate_addend=True, negate_product=False)
+
+    def test_fnmadd_f8_rtz_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTZ,
+                            negate_addend=True, negate_product=True)
+
+    def test_fnmsub_f8_rtz_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTZ,
+                            negate_addend=False, negate_product=True)
+
+    def test_fmadd_f8_rtp_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTP,
+                            negate_addend=False, negate_product=False)
+
+    def test_fmsub_f8_rtp_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTP,
+                            negate_addend=True, negate_product=False)
+
+    def test_fnmadd_f8_rtp_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTP,
+                            negate_addend=True, negate_product=True)
+
+    def test_fnmsub_f8_rtp_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTP,
+                            negate_addend=False, negate_product=True)
+
+    def test_fmadd_f8_rtn_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTN,
+                            negate_addend=False, negate_product=False)
+
+    def test_fmsub_f8_rtn_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTN,
+                            negate_addend=True, negate_product=False)
+
+    def test_fnmadd_f8_rtn_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTN,
+                            negate_addend=True, negate_product=True)
+
+    def test_fnmsub_f8_rtn_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTN,
+                            negate_addend=False, negate_product=True)
+
+    def test_fmadd_f8_rna_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RNA,
+                            negate_addend=False, negate_product=False)
+
+    def test_fmsub_f8_rna_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RNA,
+                            negate_addend=True, negate_product=False)
+
+    def test_fnmadd_f8_rna_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RNA,
+                            negate_addend=True, negate_product=True)
+
+    def test_fnmsub_f8_rna_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RNA,
+                            negate_addend=False, negate_product=True)
+
+    def test_fmadd_f8_rtop_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTOP,
+                            negate_addend=False, negate_product=False)
+
+    def test_fmsub_f8_rtop_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTOP,
+                            negate_addend=True, negate_product=False)
+
+    def test_fnmadd_f8_rtop_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTOP,
+                            negate_addend=True, negate_product=True)
+
+    def test_fnmsub_f8_rtop_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTOP,
+                            negate_addend=False, negate_product=True)
+
+    def test_fmadd_f8_rton_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTON,
+                            negate_addend=False, negate_product=False)
+
+    def test_fmsub_f8_rton_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTON,
+                            negate_addend=True, negate_product=False)
+
+    def test_fnmadd_f8_rton_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTON,
+                            negate_addend=True, negate_product=True)
+
+    def test_fnmsub_f8_rton_formal(self):
+        self.tst_fma_formal(sort=SmtSortFloatingPoint(eb=5, sb=3),
+                            rm=FPRoundingMode.RTON,
+                            negate_addend=False, negate_product=True)
+
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fmadd_f16_rne_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RNE,
                             negate_addend=False, negate_product=False)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fmsub_f16_rne_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RNE,
                             negate_addend=True, negate_product=False)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fnmadd_f16_rne_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RNE,
                             negate_addend=True, negate_product=True)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fnmsub_f16_rne_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RNE,
                             negate_addend=False, negate_product=True)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fmadd_f16_rtz_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTZ,
                             negate_addend=False, negate_product=False)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fmsub_f16_rtz_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTZ,
                             negate_addend=True, negate_product=False)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fnmadd_f16_rtz_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTZ,
                             negate_addend=True, negate_product=True)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fnmsub_f16_rtz_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTZ,
                             negate_addend=False, negate_product=True)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fmadd_f16_rtp_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTP,
                             negate_addend=False, negate_product=False)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fmsub_f16_rtp_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTP,
                             negate_addend=True, negate_product=False)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fnmadd_f16_rtp_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTP,
                             negate_addend=True, negate_product=True)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fnmsub_f16_rtp_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTP,
                             negate_addend=False, negate_product=True)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fmadd_f16_rtn_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTN,
                             negate_addend=False, negate_product=False)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fmsub_f16_rtn_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTN,
                             negate_addend=True, negate_product=False)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fnmadd_f16_rtn_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTN,
                             negate_addend=True, negate_product=True)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fnmsub_f16_rtn_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTN,
                             negate_addend=False, negate_product=True)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fmadd_f16_rna_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RNA,
                             negate_addend=False, negate_product=False)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fmsub_f16_rna_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RNA,
                             negate_addend=True, negate_product=False)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fnmadd_f16_rna_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RNA,
                             negate_addend=True, negate_product=True)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fnmsub_f16_rna_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RNA,
                             negate_addend=False, negate_product=True)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fmadd_f16_rtop_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTOP,
                             negate_addend=False, negate_product=False)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fmsub_f16_rtop_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTOP,
                             negate_addend=True, negate_product=False)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fnmadd_f16_rtop_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTOP,
                             negate_addend=True, negate_product=True)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fnmsub_f16_rtop_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTOP,
                             negate_addend=False, negate_product=True)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fmadd_f16_rton_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTON,
                             negate_addend=False, negate_product=False)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fmsub_f16_rton_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTON,
                             negate_addend=True, negate_product=False)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fnmadd_f16_rton_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTON,
                             negate_addend=True, negate_product=True)
 
+    @unittest.skipUnless(ENABLE_FMA_F16_FORMAL,
+                         "ENABLE_FMA_F16_FORMAL not in environ")
     def test_fnmsub_f16_rton_formal(self):
         self.tst_fma_formal(sort=SmtSortFloat16(), rm=FPRoundingMode.RTON,
                             negate_addend=False, negate_product=True)
@@ -542,7 +738,7 @@ class TestFMAFormal(FHDLTestCase):
                             negate_addend=False, negate_product=True)
 
     def test_all_rounding_modes_covered(self):
-        for width in 16, 32, 64:
+        for width in 8, 16, 32, 64:
             for rm in FPRoundingMode:
                 rm_s = rm.name.lower()
                 name = f"test_fmadd_f{width}_{rm_s}_formal"

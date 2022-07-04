@@ -5,7 +5,8 @@
 from nmigen import Module, Signal
 
 from nmutil.pipemodbase import PipeModBase
-from ieee754.fpcommon.fpbase import FPNumBaseRecord, FPNumBase, FPRoundingMode
+from ieee754.fpcommon.fpbase import FPFormat, FPNumBaseRecord, FPNumBase, \
+    FPRoundingMode
 from ieee754.fpcommon.roundz import FPRoundData
 from ieee754.fpcommon.packdata import FPPackData
 
@@ -25,7 +26,8 @@ class FPPackMod(PipeModBase):
         m = Module()
         comb = m.d.comb
 
-        z = FPNumBaseRecord(self.pspec.width, False, name="z")
+        z = FPNumBaseRecord(m_extra=False, name="z",
+                            fpformat=FPFormat.from_pspec(self.pspec))
         m.submodules.pack_in_z = in_z = FPNumBase(self.i.z)
         overflow_array = FPRoundingMode.make_array(
             lambda rm: rm.overflow_rounds_to_inf(self.i.z.s))

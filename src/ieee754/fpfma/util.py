@@ -59,15 +59,3 @@ def multiplicand_mantissa_shape(fpformat):
 def product_mantissa_shape(fpformat):
     assert isinstance(fpformat, FPFormat)
     return unsigned(multiplicand_mantissa_shape(fpformat).width * 2)
-
-
-def get_fpformat(pspec):
-    width = pspec.width
-    assert isinstance(width, int)
-    fpformat = getattr(pspec, "fpformat", None)
-    if fpformat is None:
-        fpformat = FPFormat.standard(width)
-    else:
-        assert isinstance(fpformat, FPFormat)
-    assert width == fpformat.width
-    return fpformat

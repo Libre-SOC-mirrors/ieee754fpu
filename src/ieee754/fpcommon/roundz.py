@@ -5,7 +5,7 @@
 from nmigen import Module, Signal, Mux
 
 from nmutil.pipemodbase import PipeModBase
-from ieee754.fpcommon.fpbase import FPNumBaseRecord, FPRoundingMode
+from ieee754.fpcommon.fpbase import FPFormat, FPNumBaseRecord, FPRoundingMode
 from ieee754.fpcommon.getop import FPPipeContext
 from ieee754.fpcommon.postnormalise import FPNorm1Data
 
@@ -14,7 +14,8 @@ class FPRoundData:
 
     def __init__(self, pspec):
         width = pspec.width
-        self.z = FPNumBaseRecord(width, False, name="z")
+        self.z = FPNumBaseRecord(m_extra=False, name="z",
+                                 fpformat=FPFormat.from_pspec(pspec))
         self.ctx = FPPipeContext(pspec)
         self.muxid = self.ctx.muxid
         # pipeline bypass [data comes from specialcases]

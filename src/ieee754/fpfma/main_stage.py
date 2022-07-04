@@ -4,18 +4,18 @@ computes `z = (a * c) + b` but only rounds once at the end
 """
 
 from nmutil.pipemodbase import PipeModBase, PipeModBaseChain
-from ieee754.fpcommon.fpbase import FPRoundingMode
+from ieee754.fpcommon.fpbase import FPRoundingMode, FPFormat
 from ieee754.fpfma.special_cases import FPFMASpecialCasesDeNormOutData
 from nmigen.hdl.dsl import Module
 from nmigen.hdl.ast import Signal, signed, unsigned, Mux, Cat
 from ieee754.fpfma.util import expanded_exponent_shape, \
-    expanded_mantissa_shape, get_fpformat, EXPANDED_MANTISSA_EXTRA_LSBS
+    expanded_mantissa_shape, EXPANDED_MANTISSA_EXTRA_LSBS
 from ieee754.fpcommon.getop import FPPipeContext
 
 
 class FPFMAPostCalcData:
     def __init__(self, pspec):
-        fpf = get_fpformat(pspec)
+        fpf = FPFormat.from_pspec(pspec)
 
         self.sign = Signal()
         """sign"""
@@ -74,7 +74,7 @@ class FPFMAMain(PipeModBase):
 
     def elaborate(self, platform):
         m = Module()
-        fpf = get_fpformat(self.pspec)
+        fpf = FPFormat.from_pspec(self.pspec)
         assert fpf.has_sign
         inp = self.i
         out = self.o

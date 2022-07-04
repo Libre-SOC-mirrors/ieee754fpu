@@ -8,9 +8,9 @@ from ieee754.fpcommon.basedata import FPBaseData
 from nmigen.hdl.ast import Signal
 from nmigen.hdl.dsl import Module
 from ieee754.fpcommon.getop import FPPipeContext
-from ieee754.fpcommon.fpbase import FPRoundingMode, MultiShiftRMerge
+from ieee754.fpcommon.fpbase import FPRoundingMode, MultiShiftRMerge, FPFormat
 from ieee754.fpfma.util import expanded_exponent_shape, \
-    expanded_mantissa_shape, get_fpformat, multiplicand_mantissa_shape, \
+    expanded_mantissa_shape, multiplicand_mantissa_shape, \
     EXPANDED_MANTISSA_EXTRA_MSBS, EXPANDED_MANTISSA_EXTRA_LSBS, \
     product_mantissa_shape
 
@@ -43,7 +43,7 @@ class FPFMAInputData(FPBaseData):
 
 class FPFMASpecialCasesDeNormOutData:
     def __init__(self, pspec):
-        fpf = get_fpformat(pspec)
+        fpf = FPFormat.from_pspec(pspec)
 
         self.sign = Signal()
         """sign"""
@@ -119,7 +119,7 @@ class FPFMASpecialCasesDeNorm(PipeModBase):
 
     def elaborate(self, platform):
         m = Module()
-        fpf = get_fpformat(self.pspec)
+        fpf = FPFormat.from_pspec(self.pspec)
         assert fpf.has_sign
         inp = self.i
         out = self.o
@@ -244,7 +244,7 @@ class FPFMASpecialCasesDeNorm(PipeModBase):
             # zero + x
             m.d.comb += [
                 Signal(name="case_zero_plus_x", attrs=keep).eq(True),
-                out.bypassed_z.eq(inp.b),
+                out.bypassed_z.eq(inp.b ^ fpf.zero(inp.negate_addend)),
                 out.do_bypass.eq(True),
             ]
         with m.Else():

@@ -1,5 +1,5 @@
 from nmutil.pipemodbase import PipeModBaseChain, PipeModBase
-from ieee754.fpcommon.fpbase import OverflowMod
+from ieee754.fpcommon.fpbase import OverflowMod, FPFormat
 from ieee754.fpcommon.postnormalise import FPNorm1Data
 from ieee754.fpcommon.roundz import FPRoundMod
 from ieee754.fpcommon.corrections import FPCorrectionsMod
@@ -7,7 +7,6 @@ from ieee754.fpcommon.pack import FPPackMod
 from ieee754.fpfma.main_stage import FPFMAPostCalcData
 from nmigen.hdl.dsl import Module
 from nmigen.hdl.ast import Signal
-from ieee754.fpfma.util import get_fpformat
 from nmigen.lib.coding import PriorityEncoder
 
 
@@ -23,7 +22,7 @@ class FPFMANorm(PipeModBase):
 
     def elaborate(self, platform):
         m = Module()
-        fpf = get_fpformat(self.pspec)
+        fpf = FPFormat.from_pspec(self.pspec)
         assert fpf.has_sign
         inp: FPFMAPostCalcData = self.i
         out: FPNorm1Data = self.o

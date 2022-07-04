@@ -458,6 +458,20 @@ class FPFormat:
         """ Get the number of mantissa bits that are fraction bits. """
         return self.m_width - self.has_int_bit
 
+    @staticmethod
+    def from_pspec(pspec):
+        width = getattr(pspec, "width", None)
+        assert width is None or isinstance(width, int)
+        fpformat = getattr(pspec, "fpformat", None)
+        if fpformat is None:
+            assert width is not None, \
+                "neither pspec.width nor pspec.fpformat were set"
+            fpformat = FPFormat.standard(width)
+        else:
+            assert isinstance(fpformat, FPFormat)
+        assert width == fpformat.width
+        return fpformat
+
 
 class TestFPFormat(unittest.TestCase):
     """ very quick test for FPFormat
@@ -594,15 +608,28 @@ class FPNumBaseRecord:
     the module.
     """
 
-    def __init__(self, width, m_extra=True, e_extra=False, name=None):
+    def __init__(self, width=None, m_extra=True, e_extra=False, name=None,
+                 fpformat=None):
         if name is None:
             name = ""
             # assert false, "missing name"
         else:
             name += "_"
+        if fpformat is None:
+            assert isinstance(width, int)
+            fpformat = FPFormat.standard(width)
+        else:
+            assert isinstance(fpformat, FPFormat)
+            if width is None:
+                width = fpformat.width
+            assert isinstance(width, int)
+            assert width == fpformat.width
         self.width = width
-        m_width = {16: 11, 32: 24, 64: 53}[width]  # 1 extra bit (overflow)
-        e_width = {16: 7,  32: 10, 64: 13}[width]  # 2 extra bits (overflow)
+        self.fpformat = fpformat
+        assert not fpformat.has_int_bit
+        assert fpformat.has_sign
+        m_width = fpformat.m_width + 1  # 1 extra bit (overflow)
+        e_width = fpformat.e_width + 2  # 2 extra bits (overflow)
         e_max = 1 << (e_width-3)
         self.rmw = m_width - 1  # real mantissa width (not including extras)
         self.e_max = e_max
