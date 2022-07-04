@@ -320,6 +320,17 @@ class FPFormat:
             x |= Const(0, signed(1))
         return x - self.exponent_bias
 
+    def get_exponent_value(self, x):
+        """ returns the exponent of its input number, x, adjusted for the
+        mathematically correct subnormal exponent.
+        """
+        x = self.get_exponent_field(x)
+        if isinstance(x, Value) and not x.shape().signed:
+            # convert x to signed without changing its value,
+            # since exponents can be negative
+            x |= Const(0, signed(1))
+        return x + (x == self.exponent_denormal_zero) - self.exponent_bias
+
     def get_mantissa_field(self, x):
         """ returns the mantissa of its input number, x
         """
