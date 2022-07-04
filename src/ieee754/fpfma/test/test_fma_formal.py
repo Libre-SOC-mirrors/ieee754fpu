@@ -40,7 +40,7 @@ class TestFMAFormal(FHDLTestCase):
         a = Signal(width)
         b = Signal(width)
         c = Signal(width)
-        with m.If(Initial() | True):  # FIXME: remove | True
+        with m.If(Initial()):
             m.d.comb += [
                 dut.p.i_data.a.eq(a),
                 dut.p.i_data.b.eq(b),
@@ -102,20 +102,6 @@ class TestFMAFormal(FHDLTestCase):
         with m.If(out_full):
             m.d.comb += Assert(out_fp.same(expected_fp).as_value())
             m.d.comb += Assert(out == expected)
-
-        def fp_from_int(v):
-            return SmtFloatingPoint.from_signed_bv(
-                SmtBitVec.make(v, width=128),
-                rm=ROUND_TOWARD_POSITIVE, sort=sort)
-
-        # FIXME: remove:
-        if False:
-            m.d.comb += Assume(a == 0x05C1)
-            m.d.comb += Assume(b == 0x877F)
-            m.d.comb += Assume(c == 0x7437)
-            with m.If(out_full):
-                m.d.comb += Assert(out == 0x0000)
-                m.d.comb += Assert(out == 0x0001)
 
         self.assertFormal(m, depth=5, solver="bitwuzla")
 

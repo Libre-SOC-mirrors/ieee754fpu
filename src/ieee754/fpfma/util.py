@@ -7,7 +7,7 @@ def expanded_exponent_shape(fpformat):
     return signed(fpformat.e_width + 3)
 
 
-EXPANDED_MANTISSA_SPACE_BETWEEN_SUM_PROD = 16  # FIXME: change back to 3
+EXPANDED_MANTISSA_SPACE_BETWEEN_SUM_PROD = 2
 r""" the number of bits of space between the lsb of a large addend and the msb
 of the product of two small factors to guarantee that the product ends up
 entirely in the sticky bit.
@@ -35,12 +35,12 @@ less hardware)
 
 # the number of extra LSBs needed by the expanded mantissa to avoid
 # having a tiny addend conflict with the lsb of the product.
-EXPANDED_MANTISSA_EXTRA_LSBS = 16  # FIXME: change back to 2
+EXPANDED_MANTISSA_EXTRA_LSBS = 3
 
 
 # the number of extra MSBs needed by the expanded mantissa to avoid
 # overflowing. 2 bits -- 1 bit for carry out of addition, 1 bit for sign.
-EXPANDED_MANTISSA_EXTRA_MSBS = 16  # FIXME: change back to 2
+EXPANDED_MANTISSA_EXTRA_MSBS = 1
 
 
 def expanded_mantissa_shape(fpformat):
