@@ -111,7 +111,7 @@ build:
         - make install
         - popd
 
-        - git clone --depth 1 -b smtlib2-expr-support https://gitlab.com/nmigen/nmigen.git nmigen
+        - git clone --depth 1 https://gitlab.com/nmigen/nmigen.git nmigen
         - pushd nmigen
         - git rev-parse HEAD
         - python3 setup.py develop
