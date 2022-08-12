@@ -1,34 +1,33 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # See Notices.txt for copyright information
 
-from dataclasses import dataclass
-from functools import reduce
-from typing import Dict, FrozenSet, List, Set, Tuple
+from nmutil.plain_data import plain_data
 from nmigen.hdl.ast import Cat, Const, Shape, Signal, SignalKey, Value, ValueKey
 from nmigen.hdl.dsl import Module
 from nmigen.hdl.ir import Elaboratable
 from ieee754.part.partsig import SimdSignal
 
 
-@dataclass(frozen=True, unsafe_hash=True)
+@plain_data(frozen=True, unsafe_hash=True)
 class Bit:
+    __slots__ = ()
+
     def get_value(self):
         """get the value of this bit as a nmigen `Value`"""
         raise NotImplementedError("called abstract method")
 
 
-@dataclass(frozen=True, unsafe_hash=True)
+@plain_data(frozen=True, unsafe_hash=True)
 class ValueBit(Bit):
-    src: ValueKey
-    bit_index: int
+    __slots__ = "src", "bit_index"
 
     def __init__(self, src, bit_index):
         if not isinstance(src, ValueKey):
             src = ValueKey(src)
         assert isinstance(bit_index, int)
         assert bit_index in range(len(src.value))
-        object.__setattr__(self, "src", src)
-        object.__setattr__(self, "bit_index", bit_index)
+        self.src = src
+        self.bit_index = bit_index
 
     def get_value(self):
         """get the value of this bit as a nmigen `Value`"""
@@ -45,23 +44,30 @@ class ValueBit(Bit):
         return signals_map[SignalKey(sig)][self.bit_index].eq(value)
 
 
-@dataclass(frozen=True, unsafe_hash=True)
+@plain_data(frozen=True, unsafe_hash=True)
 class ConstBit(Bit):
-    bit: bool
+    __slots__ = "bit",
+
+    def __init__(self, bit):
+        self.bit = bool(bit)
 
     def get_value(self):
         return Const(self.bit, 1)
 
 
-@dataclass(frozen=True)
+@plain_data(frozen=True)
 class Swizzle:
-    bits: List[Bit]
+    """
+    Attributes:
+    bits: list[Bit]
+    """
+    __slots__ = "bits",
 
     def __init__(self, bits=()):
         bits = list(bits)
         for bit in bits:
             assert isinstance(bit, Bit)
-        object.__setattr__(self, "bits", bits)
+        self.bits = bits
 
     @staticmethod
     def from_const(value, width):
@@ -117,13 +123,17 @@ class Swizzle:
             yield b.get_assign_target_sig()
 
 
-@dataclass(frozen=True)
+@plain_data(frozen=True)
 class SwizzleKey:
     """should be elwid or something similar.
     importantly, all SimdSignals that are used together must have equal
-    SwizzleKeys."""
+    SwizzleKeys.
+
+    Attributes:
     value: ValueKey
     possible_values: FrozenSet[int]
+    """
+    __slots__ = "value", "possible_values"
 
     @staticmethod
     def from_simd_signal(simd_signal):
@@ -136,7 +146,7 @@ class SwizzleKey:
                                   "from a SimdSignal")
 
     def __init__(self, value, possible_values):
-        object.__setattr__(self, "value", ValueKey(value))
+        self.value = ValueKey(value)
         pvalues = []
         shape = self.value.value.shape()
         for value in possible_values:
@@ -148,7 +158,7 @@ class SwizzleKey:
                 value = value.value
             pvalues.append(value)
         assert len(pvalues) != 0, "SwizzleKey can't have zero possible values"
-        object.__setattr__(self, "possible_values", frozenset(pvalues))
+        self.possible_values = frozenset(pvalues)
 
 
 class ResolveSwizzle(Elaboratable):
