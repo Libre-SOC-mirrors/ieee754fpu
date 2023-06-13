@@ -48,7 +48,7 @@ build:
         - ccache --show-stats || true
         - python3 -m venv --system-site-packages .venv
         - . .venv/bin/activate
-        - pip install pytest-xdist twine cython
+        - pip install pytest-xdist==3.3.1 pytest==7.3.1 twine cython
     script:
         - . .venv/bin/activate
 
@@ -119,6 +119,12 @@ build:
 
         - git clone --depth 1 https://git.libre-soc.org/git/nmutil.git nmutil
         - pushd nmutil
+        - git rev-parse HEAD
+        - python3 setup.py develop
+        - popd
+
+        - git clone --depth 1 https://git.libre-soc.org/git/pytest-output-to-files.git pytest-output-to-files
+        - pushd pytest-output-to-files
         - git rev-parse HEAD
         - python3 setup.py develop
         - popd

@@ -11,3 +11,4 @@ __pycache__
 *.gtkw
 /formal_test_temp
 /sim_test_out
+/test-out

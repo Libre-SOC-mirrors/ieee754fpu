@@ -3,10 +3,11 @@ minversion = "6.0"
 python_classes = ""
 python_functions = ""
 testpaths = ["src/ieee754"]
-required_plugins = ["pytest-xdist>=1.0.0"]
+required_plugins = ["pytest-xdist>=1.0.0", "pytest-output-to-files>=0.1.0"]
 addopts = [
     "-n",
     "auto",
+    "--shorten-output-dir=test-out",
     "--ignore",
     "src/ieee754/add/test_dual.py",
     "--ignore",
