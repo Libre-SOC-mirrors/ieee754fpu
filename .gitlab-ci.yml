@@ -48,13 +48,14 @@ build:
         - ccache --show-stats || true
         - python3 -m venv --system-site-packages .venv
         - . .venv/bin/activate
-        - pip install pytest-xdist==3.3.1 pytest==7.3.1 twine cython
+        - pip install pytest-xdist==3.3.1 pytest==7.3.1
     script:
         - . .venv/bin/activate
 
         - IEEE754FPU_PATH="$(pwd)"
         - git clone --depth 1 --recursive -b v0.6.0 https://github.com/billzorn/sfpy.git sfpy
         - pushd sfpy
+        - git apply "$IEEE754FPU_PATH"/sfpy.patch
         - pushd berkeley-softfloat-3
         - git apply "$IEEE754FPU_PATH"/berkeley-softfloat.patch
         - popd
@@ -62,6 +63,7 @@ build:
         - git apply ../softposit_sfpy_build.patch
         - git apply "$IEEE754FPU_PATH"/SoftPosit.patch
         - popd
+        - pip install -r requirements.txt
         - make lib -j$(nproc)
         - make cython -j$(nproc)
         - make wheel -j$(nproc)

@@ -1,0 +1,10 @@
+diff --git a/requirements.txt b/requirements.txt
+index 41fa4f6..0e9adef 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -2,4 +2,4 @@ pip
+ wheel
+ twine
+ keyring
+-cython
++cython~=0.29.2

@@ -30,6 +30,11 @@ IEEE754 FP emulation being tested.  This FPU is emulating RISC-V, and
 there is some weirdness in x86 IEEE754 implementations when it comes
 to FP16 non-canonical NaNs.
 
+The following modifications are required to sfpy:
+
+    cd /path/to/sfpy
+    git apply /path/to/ieee754fpu/sfpy.patch
+
 The following modifications are required to the sfpy berkeley-softfloat-3
 submodule:
 
